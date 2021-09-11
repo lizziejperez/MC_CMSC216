@@ -152,7 +152,7 @@ void getInput() {
 }
 
 /*
-**
+** Prints out the registers, pc, and memory stored
 */
 void printOutput() {
 	for(int x = 0; x < 16; x++) {
@@ -171,7 +171,7 @@ void printOutput() {
 }
 
 /*
-**
+** Returns the register number (input) as an int
 */
 int getReg(char input[3]) {
 	char num[2];
@@ -181,14 +181,14 @@ int getReg(char input[3]) {
 }
 
 /*
-**
+** Returns the constant number (input) as an int
 */
 int getConst(char input[16]) {
 	return (int) strtol(input, NULL, 0);
 }
 
 /*
-**
+** Copies the supplied constant (c) into the register location (r)
 */
 void mov(int r, int c) {
 	if(r > 0) {
@@ -198,7 +198,7 @@ void mov(int r, int c) {
 }
 
 /*
-**
+** Copies the value stored in the memory location (m) into register location (r)
 */
 void ldr(int r, int m) {
 	rgtr[r] = mem[m];
@@ -206,7 +206,7 @@ void ldr(int r, int m) {
 }
 
 /*
-**
+** Copies the value stored in the memory location indecated by register (r2) into register location (r1)
 */
 void ldi(int r1, int r2) {
 	rgtr[r1] = mem[rgtr[r2]];
@@ -214,7 +214,7 @@ void ldi(int r1, int r2) {
 }
 
 /*
-**
+** Copies the value stored in register (r) into memory location (m)
 */
 void str(int r, int m) {
 	mem[m] = rgtr[r];
@@ -222,7 +222,7 @@ void str(int r, int m) {
 }
 
 /*
-**
+** Copies the value stored in register (r1) into memory location indicated by register (r2)
 */
 void sti(int r1, int r2) {
 	mem[rgtr[r2]] = rgtr[r1];
@@ -230,7 +230,7 @@ void sti(int r1, int r2) {
 }
 
 /*
-**
+** Adds the value stored in register (r2) to the value stored in register (r3) and stores the result into register (r1)
 */
 void add(int r1, int r2, int r3) {
 	rgtr[r1] = rgtr[r2] + rgtr[r3];
@@ -238,7 +238,7 @@ void add(int r1, int r2, int r3) {
 }
 
 /*
-**
+** Multiplies the value stored in register (r2) to the value stored in register (r3) and stores the result into register (r1)
 */
 void mul(int r1, int r2, int r3) {
 	rgtr[r1] = rgtr[r2] * rgtr[r3];
@@ -246,7 +246,7 @@ void mul(int r1, int r2, int r3) {
 }
 
 /*
-**
+** Compares the value of register (r1) and register (r2), and sets the COMPARE_FLAG if they are equal, resets the COMPARE_FLAG if they are different
 */
 void cmp(int r1, int r2) {
 	if(rgtr[r1] == rgtr[r2]) {
@@ -258,14 +258,14 @@ void cmp(int r1, int r2) {
 }
 
 /*
-** Sets program counter (pc) to c
+** Sets program counter (pc) to constant (c)
 */
 void b(int c) {
 	pc = c;
 }
 
 /*
-**
+** If the value of COMPARE_FLAG is NOT zero (false), sets the value of program counter (pc) to constant (c)
 */
 void beq(int c) {
 	if(COMPARE_FLAG != FALSE) {
