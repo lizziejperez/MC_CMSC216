@@ -6,7 +6,7 @@
 #define TRUE 1
 #define FALSE 0
 #define MAX_PRG_LEN 1024
-#define LINE_LEN 20
+#define LINE_LEN 25
 
 char instr[MAX_PRG_LEN][LINE_LEN];
 long long int rgtr[16];
