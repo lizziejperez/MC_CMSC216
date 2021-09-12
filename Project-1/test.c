@@ -8,13 +8,11 @@
 #define MAX_PRG_LEN 1024
 #define LINE_LEN 26
 
-struct cpu {
-	char instr[MAX_PRG_LEN][LINE_LEN]; /* instructions */
-	long long int rgtr[16]; /* registers */
-	long long int mem[64]; /* memory */
-	int pc; /* program counter */
-	int COMPARE_FLAG;
-};
+char instr[MAX_PRG_LEN][LINE_LEN]; /* instructions */
+long long int rgtr[16]; /* registers */
+long long int mem[64]; /* memory */
+int pc; /* program counter */
+int COMPARE_FLAG;
 
 void getInput();
 void printOutput();
