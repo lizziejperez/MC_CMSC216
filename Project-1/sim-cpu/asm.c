@@ -12,7 +12,7 @@ char instr[MAX_PRG_LEN][LINE_LEN]; /* instructions */
 long long int rgtr[16]; /* registers */
 long long int mem[64]; /* memory */
 int pc; /* program counter */
-int COMPARE_FLAG;
+int cmp_flag; /* compare flag */
 
 void getInput();
 void printOutput();
@@ -33,7 +33,7 @@ int main()
 {
 	getInput();
 
-	COMPARE_FLAG = FALSE;
+	cmp_flag = FALSE;
 	pc = 0;
 	int processing = TRUE;
 	char line[LINE_LEN];
@@ -246,13 +246,14 @@ void mul(int r1, int r2, int r3) {
 }
 
 /*
-** Compares the value of register (r1) and register (r2), and sets the COMPARE_FLAG if they are equal, resets the COMPARE_FLAG if they are different
+** Compares the value of register (r1) and register (r2), and sets the compare flag (cmp_flag) if they are equal,
+** resets the compare flag (cmp_flag) if they are different
 */
 void cmp(int r1, int r2) {
 	if(rgtr[r1] == rgtr[r2]) {
-		COMPARE_FLAG = TRUE;
+		cmp_flag = TRUE;
 	} else {
-		COMPARE_FLAG = FALSE;
+		cmp_flag = FALSE;
 	}
 	++pc;
 }
@@ -265,10 +266,10 @@ void b(long long int c) {
 }
 
 /*
-** If the value of COMPARE_FLAG is NOT zero (false), sets the value of program counter (pc) to constant (c)
+** If the value of compare flag (cmp_flag) is NOT zero (false), sets the value of program counter (pc) to constant (c)
 */
 void beq(long long int c) {
-	if(COMPARE_FLAG != FALSE) {
+	if(cmp_flag != FALSE) {
 		pc = c;
 	} else {
 		++pc;
