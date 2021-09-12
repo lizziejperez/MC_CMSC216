@@ -6,7 +6,7 @@
 #define TRUE 1
 #define FALSE 0
 #define MAX_PRG_LEN 1024
-#define LINE_LEN 25
+#define LINE_LEN 26
 
 char instr[MAX_PRG_LEN][LINE_LEN];
 long long int rgtr[16];
@@ -191,7 +191,7 @@ long long int getConst(char input[16]) {
 ** Copies the supplied constant (c) into the register location (r)
 */
 void mov(int r, long long int c) {
-	printf("mov r%lld %lld\n", r, c);
+	printf("mov r%d %lld\n", r, c);
 	if(r > 0) {
 		rgtr[r] = c;
 	}
@@ -203,7 +203,7 @@ void mov(int r, long long int c) {
 ** Copies the value stored in the memory location (m) into register location (r)
 */
 void ldr(int r, long long int m) {
-	printf("ldr r%lld %lld\n", r, m);
+	printf("ldr r%d %lld\n", r, m);
 	rgtr[r] = mem[m];
 	++pc;
 	printOutput();
@@ -213,7 +213,7 @@ void ldr(int r, long long int m) {
 ** Copies the value stored in the memory location indecated by register (r2) into register location (r1)
 */
 void ldi(int r1, int r2) {
-	printf("ldi r%lld r%lld\n", r1, r2);
+	printf("ldi r%d r%d\n", r1, r2);
 	rgtr[r1] = mem[rgtr[r2]];
 	++pc;
 	printOutput();
@@ -223,7 +223,7 @@ void ldi(int r1, int r2) {
 ** Copies the value stored in register (r) into memory location (m)
 */
 void str(int r, long long int m) {
-	printf("str r%lld %lld\n", r, m);
+	printf("str r%d %lld\n", r, m);
 	mem[m] = rgtr[r];
 	++pc;
 	printOutput();
@@ -233,7 +233,7 @@ void str(int r, long long int m) {
 ** Copies the value stored in register (r1) into memory location indicated by register (r2)
 */
 void sti(int r1, int r2) {
-	printf("sti r%lld r%lld\n", r1, r2);
+	printf("sti r%d r%d\n", r1, r2);
 	mem[rgtr[r2]] = rgtr[r1];
 	++pc;
 	printOutput();
@@ -243,7 +243,7 @@ void sti(int r1, int r2) {
 ** Adds the value stored in register (r2) to the value stored in register (r3) and stores the result into register (r1)
 */
 void add(int r1, int r2, int r3) {
-	printf("add r%lld r%lld r%lld\n", r1, r2, r3);
+	printf("add r%d r%d r%d\n", r1, r2, r3);
 	rgtr[r1] = rgtr[r2] + rgtr[r3];
 	++pc;
 	printOutput();
@@ -253,7 +253,7 @@ void add(int r1, int r2, int r3) {
 ** Multiplies the value stored in register (r2) to the value stored in register (r3) and stores the result into register (r1)
 */
 void mul(int r1, int r2, int r3) {
-	printf("mul r%lld r%lld r%lld\n", r1, r2, r3);
+	printf("mul r%d r%d r%d\n", r1, r2, r3);
 	rgtr[r1] = rgtr[r2] * rgtr[r3];
 	++pc;
 	printOutput();
@@ -263,7 +263,7 @@ void mul(int r1, int r2, int r3) {
 ** Compares the value of register (r1) and register (r2), and sets the COMPARE_FLAG if they are equal, resets the COMPARE_FLAG if they are different
 */
 void cmp(int r1, int r2) {
-	printf("cmp r%lld r%lld\n", r1, r2);
+	printf("cmp r%d r%d\n", r1, r2);
 	if(rgtr[r1] == rgtr[r2]) {
 		COMPARE_FLAG = TRUE;
 	} else {
