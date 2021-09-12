@@ -29,8 +29,7 @@ void cmp(int, int);
 void b(long long int);
 void beq(long long int);
 
-int main()
-{
+int main() {
 	getInput();
 
 	cmp_flag = FALSE;
