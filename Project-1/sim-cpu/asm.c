@@ -9,25 +9,25 @@
 #define LINE_LEN 26
 
 char instr[MAX_PRG_LEN][LINE_LEN];
-int rgtr[16];
-int mem[64];
+long long int rgtr[16];
+long long int mem[64];
 int pc;
 int COMPARE_FLAG;
 
 void getInput();
 void printOutput();
 int getReg(char []);
-int getConst(char []);
-void mov(int, int);
-void ldr(int, int);
+long long int getConst(char []);
+void mov(int, long long int);
+void ldr(int, long long int);
 void ldi(int, int);
-void str(int, int);
+void str(int, long long int);
 void sti(int, int);
 void add(int, int, int);
 void mul(int, int, int);
 void cmp(int, int);
-void b(int);
-void beq(int);
+void b(long long int);
+void beq(long long int);
 
 int main()
 {
@@ -51,7 +51,7 @@ int main()
 
 		if(strncmp("b", opcode, 1)  == 0) {
 			ptr = strtok(NULL, " ");
-			int op1 = getConst(ptr);
+			long long int op1 = getConst(ptr);
 			if(strncmp("beq", opcode, 3) == 0) {
 				beq(op1);
 			} else {
@@ -63,7 +63,7 @@ int main()
 			ptr = strtok(NULL, " ");
 			int op1 = getReg(ptr);
 			ptr = strtok(NULL, " ");
-			int op2 = getConst(ptr);
+			long long int op2 = getConst(ptr);
 			mov(op1, op2);
 		}
 
@@ -71,7 +71,7 @@ int main()
 			ptr = strtok(NULL, " ");
 			int op1 = getReg(ptr);
 			ptr = strtok(NULL, " ");
-			int op2 = getConst(ptr);
+			long long int op2 = getConst(ptr);
 			ldr(op1, op2);
 		}
 
@@ -79,7 +79,7 @@ int main()
 			ptr = strtok(NULL, " ");
 			int op1 = getReg(ptr);
 			ptr = strtok(NULL, " ");
-			int op2 = getReg(ptr);
+			long long int op2 = getReg(ptr);
 			ldi(op1, op2);
 		}
 
@@ -87,7 +87,7 @@ int main()
 			ptr = strtok(NULL, " ");
 			int op1 = getReg(ptr);
 			ptr = strtok(NULL, " ");
-			int op2 = getConst(ptr);
+			long long int op2 = getConst(ptr);
 			str(op1, op2);
 		}
 
@@ -156,7 +156,7 @@ void getInput() {
 */
 void printOutput() {
 	for(int x = 0; x < 16; x++) {
-		printf("register 0x%01X: 0x%012lX\n", x, (long int) rgtr[x]);
+		printf("register 0x%01X: 0x%012llX\n", x, rgtr[x]);
 	}
 	printf("register  PC: 0x%012X\n\n", pc);
 	for(int x = 0; x < 64; x++) {
@@ -165,7 +165,7 @@ void printOutput() {
 		} else if((x%8) == 0) {
 			printf("\n0x%02X: ", x);
 		}
-		printf("0x%012lX ", (long int) mem[x]);
+		printf("0x%012llX ", mem[x]);
 	}
 	printf("\n");
 }
@@ -183,14 +183,14 @@ int getReg(char input[3]) {
 /*
 ** Returns the constant number (input) as an int
 */
-int getConst(char input[16]) {
-	return (int) strtol(input, NULL, 0);
+long long int getConst(char input[16]) {
+	return (long long int) strtol(input, NULL, 0);
 }
 
 /*
 ** Copies the supplied constant (c) into the register location (r)
 */
-void mov(int r, int c) {
+void mov(int r, long long int c) {
 	if(r > 0) {
 		rgtr[r] = c;
 	}
@@ -200,7 +200,7 @@ void mov(int r, int c) {
 /*
 ** Copies the value stored in the memory location (m) into register location (r)
 */
-void ldr(int r, int m) {
+void ldr(int r, long long int m) {
 	rgtr[r] = mem[m];
 	++pc;
 }
@@ -216,7 +216,7 @@ void ldi(int r1, int r2) {
 /*
 ** Copies the value stored in register (r) into memory location (m)
 */
-void str(int r, int m) {
+void str(int r, long long int m) {
 	mem[m] = rgtr[r];
 	++pc;
 }
@@ -260,14 +260,14 @@ void cmp(int r1, int r2) {
 /*
 ** Sets program counter (pc) to constant (c)
 */
-void b(int c) {
+void b(long long int c) {
 	pc = c;
 }
 
 /*
 ** If the value of COMPARE_FLAG is NOT zero (false), sets the value of program counter (pc) to constant (c)
 */
-void beq(int c) {
+void beq(long long int c) {
 	if(COMPARE_FLAG != FALSE) {
 		pc = c;
 	} else {
