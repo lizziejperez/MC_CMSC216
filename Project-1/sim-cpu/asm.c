@@ -183,7 +183,7 @@ int getReg(char input[3]) {
 /*
 ** Returns the constant number (input) as an int
 */
-long long int getConst(char input[16]) {
+long long int getConst(char input[20]) {
 	return (long long int) strtol(input, NULL, 0);
 }
 
