@@ -176,56 +176,74 @@ long long int getConst(char input[16]) {
 }
 
 void mov(int r, long long int c) {
+	printf("mov r%lld %lld\n", r, c);
 	if(r > 0) {
 		rgtr[r] = c;
 	}
 	++pc;
+	printOutput();
 }
 
 void ldr(int r, long long int m) {
+	printf("ldr r%lld %lld\n", r, m);
 	rgtr[r] = mem[m];
 	++pc;
+	printOutput();
 }
 
 void ldi(int r1, int r2) {
+	printf("ldi r%lld r%lld\n", r1, r2);
 	rgtr[r1] = mem[rgtr[r2]];
 	++pc;
+	printOutput();
 }
 
 void str(int r, long long int m) {
+	printf("str r%lld %lld\n", r, m);
 	mem[m] = rgtr[r];
 	++pc;
+	printOutput();
 }
 
 void sti(int r1, int r2) {
+	printf("sti r%lld r%lld\n", r1, r2);
 	mem[rgtr[r2]] = rgtr[r1];
 	++pc;
+	printOutput();
 }
 
 void add(int r1, int r2, int r3) {
+	printf("add r%lld r%lld r%lld\n", r1, r2, r3);
 	rgtr[r1] = rgtr[r2] + rgtr[r3];
 	++pc;
+	printOutput();
 }
 
 void mul(int r1, int r2, int r3) {
+	printf("mul r%lld r%lld r%lld\n", r1, r2, r3);
 	rgtr[r1] = rgtr[r2] * rgtr[r3];
 	++pc;
+	printOutput();
 }
 
 void cmp(int r1, int r2) {
+	printf("cmp r%lld r%lld\n", r1, r2);
 	if(rgtr[r1] == rgtr[r2]) {
 		COMPARE_FLAG = TRUE;
 	} else {
 		COMPARE_FLAG = FALSE;
 	}
 	++pc;
+	printOutput();
 }
 
 void b(long long int c) {
+	printf("b %lld\n", c);
 	pc = c;
 }
 
 void beq(long long int c) {
+	printf("beq %lld\n", c);
 	if(COMPARE_FLAG != FALSE) {
 		pc = c;
 	} else {
