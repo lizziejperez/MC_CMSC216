@@ -156,16 +156,16 @@ void getInput() {
 */
 void printOutput() {
 	for(int x = 0; x < 16; x++) {
-		printf("register 0x%01X: 0x%012llX\n", x, rgtr[x]);
+		printf("register 0x%01X: 0x%016llX\n", x, rgtr[x]);
 	}
-	printf("register  PC: 0x%012X\n\n", pc);
+	printf("register  PC: 0x%016X\n\n", pc);
 	for(int x = 0; x < 64; x++) {
 		if(x == 0) {
 			printf("0x%02X: ", x);
 		} else if((x%8) == 0) {
 			printf("\n0x%02X: ", x);
 		}
-		printf("0x%012llX ", mem[x]);
+		printf("0x%016llX ", mem[x]);
 	}
 	printf("\n");
 }
