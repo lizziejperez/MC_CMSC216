@@ -133,6 +133,9 @@ int main()
 	return 0;
 }
 
+/*
+** Gets the input and stores it in the instructions array (instr)
+*/
 void getInput() {
 	int i = 0, getInput = TRUE;
 	while(getInput == TRUE) {
@@ -148,6 +151,9 @@ void getInput() {
 	}
 }
 
+/*
+** Prints out the registers, pc, and memory stored
+*/
 void printOutput() {
 	for(int x = 0; x < 16; x++) {
 		printf("register 0x%01X: 0x%012llX\n", x, rgtr[x]);
@@ -164,6 +170,9 @@ void printOutput() {
 	printf("\n");
 }
 
+/*
+** Returns the register number (input) as an int
+*/
 int getReg(char input[3]) {
 	char num[2];
 	num[0] = input[1];
@@ -171,10 +180,16 @@ int getReg(char input[3]) {
 	return (int) strtol(num, NULL, 10);
 }
 
+/*
+** Returns the constant number (input) as an int
+*/
 long long int getConst(char input[16]) {
 	return (long long int) strtol(input, NULL, 0);
 }
 
+/*
+** Copies the supplied constant (c) into the register location (r)
+*/
 void mov(int r, long long int c) {
 	printf("mov r%lld %lld\n", r, c);
 	if(r > 0) {
@@ -184,6 +199,9 @@ void mov(int r, long long int c) {
 	printOutput();
 }
 
+/*
+** Copies the value stored in the memory location (m) into register location (r)
+*/
 void ldr(int r, long long int m) {
 	printf("ldr r%lld %lld\n", r, m);
 	rgtr[r] = mem[m];
@@ -191,6 +209,9 @@ void ldr(int r, long long int m) {
 	printOutput();
 }
 
+/*
+** Copies the value stored in the memory location indecated by register (r2) into register location (r1)
+*/
 void ldi(int r1, int r2) {
 	printf("ldi r%lld r%lld\n", r1, r2);
 	rgtr[r1] = mem[rgtr[r2]];
@@ -198,6 +219,9 @@ void ldi(int r1, int r2) {
 	printOutput();
 }
 
+/*
+** Copies the value stored in register (r) into memory location (m)
+*/
 void str(int r, long long int m) {
 	printf("str r%lld %lld\n", r, m);
 	mem[m] = rgtr[r];
@@ -205,6 +229,9 @@ void str(int r, long long int m) {
 	printOutput();
 }
 
+/*
+** Copies the value stored in register (r1) into memory location indicated by register (r2)
+*/
 void sti(int r1, int r2) {
 	printf("sti r%lld r%lld\n", r1, r2);
 	mem[rgtr[r2]] = rgtr[r1];
@@ -212,6 +239,9 @@ void sti(int r1, int r2) {
 	printOutput();
 }
 
+/*
+** Adds the value stored in register (r2) to the value stored in register (r3) and stores the result into register (r1)
+*/
 void add(int r1, int r2, int r3) {
 	printf("add r%lld r%lld r%lld\n", r1, r2, r3);
 	rgtr[r1] = rgtr[r2] + rgtr[r3];
@@ -219,6 +249,9 @@ void add(int r1, int r2, int r3) {
 	printOutput();
 }
 
+/*
+** Multiplies the value stored in register (r2) to the value stored in register (r3) and stores the result into register (r1)
+*/
 void mul(int r1, int r2, int r3) {
 	printf("mul r%lld r%lld r%lld\n", r1, r2, r3);
 	rgtr[r1] = rgtr[r2] * rgtr[r3];
@@ -226,6 +259,9 @@ void mul(int r1, int r2, int r3) {
 	printOutput();
 }
 
+/*
+** Compares the value of register (r1) and register (r2), and sets the COMPARE_FLAG if they are equal, resets the COMPARE_FLAG if they are different
+*/
 void cmp(int r1, int r2) {
 	printf("cmp r%lld r%lld\n", r1, r2);
 	if(rgtr[r1] == rgtr[r2]) {
@@ -237,11 +273,17 @@ void cmp(int r1, int r2) {
 	printOutput();
 }
 
+/*
+** Sets program counter (pc) to constant (c)
+*/
 void b(long long int c) {
 	printf("b %lld\n", c);
 	pc = c;
 }
 
+/*
+** If the value of COMPARE_FLAG is NOT zero (false), sets the value of program counter (pc) to constant (c)
+*/
 void beq(long long int c) {
 	printf("beq %lld\n", c);
 	if(COMPARE_FLAG != FALSE) {
