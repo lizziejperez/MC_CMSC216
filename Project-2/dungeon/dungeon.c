@@ -29,6 +29,7 @@ unsigned long long dragonPos;
 char playerItem[ITEM_LEN];
 
 void buildMap();
+void addRoom(char []);
 
 int main() {
 	buildMap();
@@ -46,7 +47,7 @@ void buildMap() {
 		if(strncmp(line, "0", 1) == 0) {
 			getRoom = FALSE;
 		} else {
-			// Add the room
+			addRoom(line);
 		}
 	}
 }
@@ -54,6 +55,18 @@ void buildMap() {
 /*
 **
 */
-void addRoom() {
+void addRoom(char input[MAX_LEN]) {
+	char *ptr;
+	ptr = strtok(input, " ()");
+	unsigned long long id = (unsigned long long) strtol(ptr, NULL, 10);
+    ptr = strtok(NULL, " ()");
+	char adj_rooms[MAX_LEN];
+	strcpy(adj_rooms, ptr);
 
+	int hasItem;
+	if(ptr == NULL){
+		hasItem = FALSE;
+	} else {
+		hasItem = TRUE;
+	}
 }
