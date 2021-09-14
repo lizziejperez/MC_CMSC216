@@ -17,27 +17,35 @@ struct room {
 	struct room left;
 	struct room right;
 	unsigned long long adj_rooms[];
-}
+};
 
 struct map {
 	struct room root;
-}
+};
 
-struct map map;
-unsigned long long playerPos;
-unsigned long long dragonPos;
+struct map map; /* dungeon map */
+unsigned long long dragonPos; /* dragon position */
+unsigned long long playerPos; /* player position */
 char playerItem[ITEM_LEN];
 
 void buildMap();
-void addRoom(char []);
+void buildRoom(char []);
+void addRoom(struct room);
+void setPos();
 
 int main() {
+	struct room nullRoom;
+	nullRoom.id = 0;
+	map.root = nullRoom;
+
 	buildMap();
+	setPos();
+
 	return 0;
 }
 
 /*
-** 
+** Builds dungeon map using user input
 */
 void buildMap() {
 	char line[MAX_LEN];
@@ -47,26 +55,65 @@ void buildMap() {
 		if(strncmp(line, "0", 1) == 0) {
 			getRoom = FALSE;
 		} else {
-			addRoom(line);
+			buildRoom(line);
 		}
 	}
 }
 
 /*
-**
+** Initializes and adds the room constructed by input
 */
-void addRoom(char input[MAX_LEN]) {
+void buildRoom(char input[MAX_LEN]) {
+	struct room room;
 	char *ptr;
 	ptr = strtok(input, " ()");
-	unsigned long long id = (unsigned long long) strtol(ptr, NULL, 10);
-    ptr = strtok(NULL, " ()");
-	char adj_rooms[MAX_LEN];
-	strcpy(adj_rooms, ptr);
+	room.id = (unsigned long long) strtol(ptr, NULL, 10);
 
-	int hasItem;
-	if(ptr == NULL){
-		hasItem = FALSE;
+	// ptr = strtok(input, " ()");
+	// char list[MAX_LEN];
+	// strcpy(list, ptr);
+
+	// ptr = strtok(input, " ()");
+	// if(ptr != NULL){
+	// 	strcpy(room.item, ptr);
+	// }
+
+	if(map.root.id == 0) {
+		map.root = room;
 	} else {
-		hasItem = TRUE;
+		addRoom(room);
 	}
+}
+
+/*
+** Adds the room to the dungeon map (as a new leaf node)
+*/
+void addRoom(struct room room) {
+	struct room root;
+	root = map.root;
+
+	int cont = TRUE;
+	while(cont) {
+		if(room.id < root.id) {
+			if(root.left == NULL) {
+				root.left = room;
+				cont = FALSE;
+			} else {
+				root = root.left;
+			}
+		} else {
+			if(root.right = NULL) {
+				root.right = room;
+				cont = FALSE;
+			} else {
+				root = root.right;
+			}
+		}
+	}
+}
+
+/*
+** Sets the initial positions of the player and dragon
+*/
+void setPos() {
 }
