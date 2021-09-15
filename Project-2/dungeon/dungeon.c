@@ -35,29 +35,34 @@ void buildMap();
 struct room *newRoom(unsigned long long, char []);
 struct room *addRoom(struct room *, unsigned long long, char []);
 struct room *getRoom(struct room *, unsigned long long);
-void setPos();
+void inorder(struct room *);
+// void setPos();
+void debug() {
+	inorder(&map.root);
+	puts("\n");
+}
 
 int main() {
 	map.root = NULL;
 
 	buildMap();
-	setPos();
+	debug();
+	// setPos();
 
-	puts("Welcome to the dungeon.\n");
-	if(playerPos == dragonPos) {
-		foundDragon = TRUE;
-	} else {
-		foundDragon = FALSE;
-	}
-	while(foundDragon != TRUE) {
-		printf("You are in room %llu", playerPos);
-		struct room *curRoom = getRoom(playerPos);
-		if(strncmp("empty", curRoom->item, 5) != 0) {
-			printf(", on the groud is a %s", curRoom->item);
-		}
-		puts(". Neaby are rooms");
-
-	}
+	// puts("Welcome to the dungeon.\n");
+	// if(playerPos == dragonPos) {
+	// 	foundDragon = TRUE;
+	// } else {
+	// 	foundDragon = FALSE;
+	// }
+	// while(foundDragon != TRUE) {
+	// 	printf("You are in room %llu", playerPos);
+	// 	struct room *curRoom = getRoom(playerPos);
+	// 	if(strncmp("empty", curRoom->item, 5) != 0) {
+	// 		printf(", on the groud is a %s", curRoom->item);
+	// 	}
+	// 	puts(". Neaby are rooms");
+	// }
 
 	return 0;
 }
@@ -147,16 +152,24 @@ struct room *getRoom(struct room *root, unsigned long long id) {
 	}
 }
 
+void inorder(struct room *root) {
+    if(root!=NULL) {
+        inorder(root->left_child);
+        printf(" %d ", root->data);
+        inorder(root->right_child);
+    }
+}
+
 /*
 ** (Incomplete) Sets the initial positions of the player and dragon
 */
-void setPos() {
-	char *input = (char *) malloc(2*sizeof(unsigned long long)+2);
-	fgets(input, (2*sizeof(unsigned long long)+2), stdin);
-	char *ptr;
-	ptr = strtok(input, ", ");
-	playerPos = (unsigned long long) strtol(ptr, NULL, 10);
-	ptr = strtok(input, ", ");
-	dragonPos = (unsigned long long) strtol(ptr, NULL, 10);
-	/* check that the rooms exist */
-}
+// void setPos() {
+// 	char *input = (char *) malloc(2*sizeof(unsigned long long)+2);
+// 	fgets(input, (2*sizeof(unsigned long long)+2), stdin);
+// 	char *ptr;
+// 	ptr = strtok(input, ", ");
+// 	playerPos = (unsigned long long) strtol(ptr, NULL, 10);
+// 	ptr = strtok(input, ", ");
+// 	dragonPos = (unsigned long long) strtol(ptr, NULL, 10);
+// 	/* check that the rooms exist */
+// }
