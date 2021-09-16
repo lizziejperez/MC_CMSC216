@@ -10,35 +10,39 @@
 #define TRUE 1
 #define FALSE 0
 #define MAX 100
-#define ITEM_LEN 256
+#define MAX_ITEM_LEN 255
 
 typedef struct _room {
 	unsigned long id;
-	char item[ITEM_LEN];
 	struct _room *left;
 	struct _room *right;
-	// unsigned long adj_rooms[];
-	// struct room *adj_rooms[];
+	char item[MAX_ITEM_LEN];
+	struct _room **adj_rooms;
 } room;
 
 typedef struct _map {
-	room root;
+	room *root;
 } map;
 
 map dungeon; /* dungeon map */
 unsigned long dragonPos; /* dragon position */
 unsigned long playerPos; /* player position */
-char playerItem[ITEM_LEN];
+char playerItem[MAX_ITEM_LEN];
 int foundDragon;
 
 void buildMap();
+void addRoomInfo(unsigned long);
+void addRoomItem(unsigned long, char);
+void addRoomConnection(unsigned long, room *);
 struct room *newRoom(unsigned long, char []);
 struct room *addRoom(room *, unsigned long, char []);
 struct room *getRoom(room *, unsigned long;
 void inorder(room *);
-// void setPos();
+
+void setPos();
+
 void debug() {
-	inorder(&dungeon.root);
+	inorder(dungeon.root);
 	puts("\n");
 }
 
@@ -68,52 +72,25 @@ int main() {
 }
 
 /*
-** (Incomplete) Builds dungeon map using user input
+** Builds dungeon map using user input
 */
 void buildMap() {
 	int getRooms = TRUE;
 	while(getRooms == TRUE) {
 		unsigned long id;
-		scanf("%lu %*c", &id);
+		scanf("%lu", &id);
 		if(id == (unsigned long) 0) {
+			scanf("%*[\n]s");
 			getRooms = FALSE;
 		} else {
-			/* TODO: store the adj_room_ids */
-			int i = 0;
-			char c;
-			// unsigned long *adj_ptrs[MAX];
-			for(int i = 0; i < MAX; ++i) {
-				// adj_ptrs[i] = malloc(sizeof(unsigned long));
-				// scanf("%llu  %c", adj_ptrs[i], &c);
-				// if(adj_ptrs[i] == (unsigned long) 0) {
-				// 	free(adj_ptrs[i]);
-				// 	--i;
-				// }
-				// *Start* debug code
-				unsigned long adj_id;
-				scanf("%lu  %c", &adj_id, &c);
-				if(adj_id == (unsigned long) 0) {
-					printf("From room %lu player can go to room %lu", id, adj_id);
-				}
-				// *End* debug code
-				if(c == ")") {
-					// &adj_ptrs = realloc(adj_ptrs, sizeof(unsigned long long)*i);
-					break;
-				}
-			}
-
-			char item[ITEM_LEN];
-			if(scanf(" %s", &item) == 0) {
-				if(dungeon.root == NULL) {
-					dungeon.root = newRoom(id, NULL);
-				} else {
-					addRoom(&dungeon.root, id, NULL);
-				}
+			if(dungeon.root == NULL) {
+				dungeon.root = newRoom(id);
 			} else {
-				if(dungeon.root == NULL) {
-					dungeon.root = newRoom(id, item);
+				if(roomPresent(id) == TRUE) {
+					addRoomInfo(id);
 				} else {
-					addRoom(&dungeon.root, id, item);
+					addRoom(dungeon.root, id);
+					addRoomInfo(id);
 				}
 			}
 		}
@@ -121,28 +98,83 @@ void buildMap() {
 }
 
 /*
+** Adds the user provided information to the corresponding room
+*/
+void addRoomInfo(unsigned long id) {
+	scanf(" %*c");
+	int inList = TRUE;
+	while(inList) {
+		unsigned long adj_id;
+		char c;
+		scanf("%lu  %c", &adj_id, &c);
+		if(adj_id != (unsigned long) 0) {
+			if(getRoom(dungeon.root, adj_id) == NULL) {
+				addRoom(dungeon.root, adj_id);
+				addRoomConnection(id, getRoom(dungeon.root, adj_id));
+			} else {
+				addRoomConnection(id, getRoom(dungeon.root, adj_id));
+			}
+			printf("From room %lu player can go to room %lu", id, adj_id);
+		}
+		if(c == ")") {
+			inList = FALSE;
+		}
+	}
+
+	char item[MAX_ITEM_LEN];
+	if(scanf(" %[^\n]s", &item) == 1) {
+		addRoomItem(id, item);
+	}
+}
+
+/*
+** Adds an item to a room
+*/
+void addRoomItem(unsigned long id, char item[MAX_ITEM_LEN]) {
+	room *r = getRoom(dungeon.root, id);
+	r->item = item;
+}
+
+/*
+** Adds a room connection
+*/
+void addRoomConnection(unsigned long id, room *adj_room) {
+	room *r = getRoom(dungeon.root, id);
+	if(r->adj_rooms == NULL) {
+		room *rooms = (room *) malloc(sizeof(room *));
+		r->adj_rooms = &rooms;
+		(*r->adj_rooms)[0] = adj_room; // room *adj_rooms[0] = adj_room
+	} else {
+		int num_rooms = (sizeof(r->adj_rooms) / sizeof(room *)) + 1;
+		(*r->adj_rooms) = (room *) realloc((*r->adj_rooms), sizeof(room *) * num_rooms);
+		(*r->adj_rooms)[num_rooms-1] = adj_room;
+	}
+}
+
+/*
 ** Creates a new room (node)
 */
-room *newRoom(unsigned long id, char item[ITEM_LEN]) {
-	room *p;
-	p = malloc(sizeof(room));
-	p->id = id;
-	p->item = item;
-	p->left = NULL;
-	p->right= NULL;
-	return p;
+room *newRoom(unsigned long id) {
+	room *r;
+	r = malloc(sizeof(room));
+	r->id = id;
+	r->left = NULL;
+	r->right = NULL;
+	r->item = NULL;
+	r->adj_rooms = NULL; 
+	return r;
 }
 
 /*
 ** Adds a room to the map (binary search tree)
 */
-room *addRoom(room *root, unsigned long id, char item[ITEM_LEN]) { 
+room *addRoom(room *root, unsigned long id) { 
 	if(root == NULL) {
-		return newRoom(id, item);
-	} else if(x > root->id) {
-		root->right_child = addRoom(root->right, id, item);
+		return newRoom(id);
+	} else if(id > root->id) {
+		root->right_child = addRoom(root->right, id);
 	} else {
-		root->left_child = addRoom(root->left, id, item);
+		root->left_child = addRoom(root->left, id);
 	}
 	return root;
 }
@@ -161,6 +193,9 @@ room *getRoom(room *root, unsigned long id) {
 	}
 }
 
+/*
+** Prints out the rooms in order (lowest to highest) based on room ids
+*/
 void inorder(room *root) {
     if(root!=NULL) {
         inorder(root->left_child);
@@ -170,15 +205,19 @@ void inorder(room *root) {
 }
 
 /*
-** (Incomplete) Sets the initial positions of the player and dragon
+** Sets the initial positions of the player and dragon
 */
-// void setPos() {
-// 	char *input = (char *) malloc(2*sizeof(unsigned long long)+2);
-// 	fgets(input, (2*sizeof(unsigned long long)+2), stdin);
-// 	char *ptr;
-// 	ptr = strtok(input, ", ");
-// 	playerPos = (unsigned long long) strtol(ptr, NULL, 10);
-// 	ptr = strtok(input, ", ");
-// 	dragonPos = (unsigned long long) strtol(ptr, NULL, 10);
-// 	/* check that the rooms exist */
-// }
+void setPos() {
+	int unset = TRUE;
+	while(unset) {
+		unsigned long pos1, pos2;
+		scanf("%lu %*c %lu", &pos1, &pos2);
+		if(getRoom(pos1) == NULL || getRoom(pos2) == NULL) {
+			puts("Entered invalid starting position(s). Try again.\n");
+		} else {
+			playerPos = pos1;
+			dragonPos = pos2;
+			unset = FALSE;
+		}
+	}
+}
