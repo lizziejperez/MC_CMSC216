@@ -9,7 +9,7 @@
 
 #define TRUE 1
 #define FALSE 0
-#define MAX 1000000
+#define MAX 100
 #define ITEM_LEN 256
 
 typedef struct _room {
@@ -74,21 +74,28 @@ void buildMap() {
 	int getRooms = TRUE;
 	while(getRooms == TRUE) {
 		unsigned long id;
-		scanf("%llu %*c", &id);
+		scanf("%lu %*c", &id);
 		if(id == (unsigned long) 0) {
 			getRooms = FALSE;
 		} else {
 			/* TODO: store the adj_room_ids */
 			int i = 0;
 			char c;
-			unsigned long *adj_ptrs[MAX];
+			// unsigned long *adj_ptrs[MAX];
 			for(int i = 0; i < MAX; ++i) {
-				adj_ptrs[i] = malloc(sizeof(unsigned long));
-				scanf("%llu  %c", adj_ptrs[i], &c);
-				if(adj_ptrs[i] == (unsigned long) 0) {
-					free(adj_ptrs[i]);
-					--i;
+				// adj_ptrs[i] = malloc(sizeof(unsigned long));
+				// scanf("%llu  %c", adj_ptrs[i], &c);
+				// if(adj_ptrs[i] == (unsigned long) 0) {
+				// 	free(adj_ptrs[i]);
+				// 	--i;
+				// }
+				// *Start* debug code
+				unsigned long adj_id;
+				scanf("%lu  %c", &adj_id, &c);
+				if(adj_id == (unsigned long) 0) {
+					printf("From room %lu player can go to room %lu", id, adj_id);
 				}
+				// *End* debug code
 				if(c == ")") {
 					// &adj_ptrs = realloc(adj_ptrs, sizeof(unsigned long long)*i);
 					break;
