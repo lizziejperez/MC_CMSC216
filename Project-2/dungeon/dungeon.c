@@ -5,45 +5,45 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #define TRUE 1
 #define FALSE 0
-#define MAX_LEN 1000000
+#define MAX 1000000
 #define ITEM_LEN 256
 
-struct room {
-	unsigned long long id;
+typedef struct _room {
+	unsigned long id;
 	char item[ITEM_LEN];
-	struct room *left;
-	struct room *right;
-	// unsigned long long adj_rooms[];
-};
+	struct _room *left;
+	struct _room *right;
+	// unsigned long adj_rooms[];
+	// struct room *adj_rooms[];
+} room;
 
+typedef struct _map {
+	room root;
+} map;
 
-
-struct map {
-	struct room root;
-};
-
-struct map map; /* dungeon map */
-unsigned long long dragonPos; /* dragon position */
-unsigned long long playerPos; /* player position */
+map dungeon; /* dungeon map */
+unsigned long dragonPos; /* dragon position */
+unsigned long playerPos; /* player position */
 char playerItem[ITEM_LEN];
 int foundDragon;
 
 void buildMap();
-struct room *newRoom(unsigned long long, char []);
-struct room *addRoom(struct room *, unsigned long long, char []);
-struct room *getRoom(struct room *, unsigned long long);
-void inorder(struct room *);
+struct room *newRoom(unsigned long, char []);
+struct room *addRoom(room *, unsigned long, char []);
+struct room *getRoom(room *, unsigned long;
+void inorder(room *);
 // void setPos();
 void debug() {
-	inorder(&map.root);
+	inorder(&dungeon.root);
 	puts("\n");
 }
 
 int main() {
-	map.root = NULL;
+	dungeon.root = NULL;
 
 	buildMap();
 	debug();
@@ -63,7 +63,7 @@ int main() {
 	// 	}
 	// 	puts(". Neaby are rooms");
 	// }
-
+	free(&dungeon);
 	return 0;
 }
 
@@ -73,38 +73,40 @@ int main() {
 void buildMap() {
 	int getRooms = TRUE;
 	while(getRooms == TRUE) {
-		unsigned long long id;
+		unsigned long id;
 		scanf("%llu %*c", &id);
-		if(id == (unsigned long long) 0) {
+		if(id == (unsigned long) 0) {
 			getRooms = FALSE;
 		} else {
 			/* TODO: store the adj_room_ids */
 			int i = 0;
 			char c;
-			unsigned long long adj_id;
-			int done = FALSE;
-			while(!done) {
-				scanf("%llu  %c", &adj_id, &c);
-				if(adj_id != (unsigned long long) 0) {
-					++i;
+			unsigned long *adj_ptrs[MAX];
+			for(int i = 0; i < MAX; ++i) {
+				adj_ptrs[i] = malloc(sizeof(unsigned long));
+				scanf("%llu  %c", adj_ptrs[i], &c);
+				if(adj_ptrs[i] == (unsigned long) 0) {
+					free(adj_ptrs[i]);
+					--i;
 				}
 				if(c == ")") {
-					done = TRUE;
+					// &adj_ptrs = realloc(adj_ptrs, sizeof(unsigned long long)*i);
+					break;
 				}
 			}
 
 			char item[ITEM_LEN];
 			if(scanf(" %s", &item) == 0) {
-				if(map.root == NULL) {
-					map.root = newRoom(id, NULL);
+				if(dungeon.root == NULL) {
+					dungeon.root = newRoom(id, NULL);
 				} else {
-					addRoom(&map.root, id, NULL);
+					addRoom(&dungeon.root, id, NULL);
 				}
 			} else {
-				if(map.root == NULL) {
-					map.root = newRoom(id, item);
+				if(dungeon.root == NULL) {
+					dungeon.root = newRoom(id, item);
 				} else {
-					addRoom(&map.root, id, item);
+					addRoom(&dungeon.root, id, item);
 				}
 			}
 		}
@@ -114,9 +116,9 @@ void buildMap() {
 /*
 ** Creates a new room (node)
 */
-struct room *newRoom(unsigned long long id, char item[ITEM_LEN]) {
-	struct room *p;
-	p = malloc(sizeof(struct room));
+room *newRoom(unsigned long id, char item[ITEM_LEN]) {
+	room *p;
+	p = malloc(sizeof(room));
 	p->id = id;
 	p->item = item;
 	p->left = NULL;
@@ -127,7 +129,7 @@ struct room *newRoom(unsigned long long id, char item[ITEM_LEN]) {
 /*
 ** Adds a room to the map (binary search tree)
 */
-struct room *addRoom(struct room *root, unsigned long long id, char item[ITEM_LEN]) { 
+room *addRoom(room *root, unsigned long id, char item[ITEM_LEN]) { 
 	if(root == NULL) {
 		return newRoom(id, item);
 	} else if(x > root->id) {
@@ -142,7 +144,7 @@ struct room *addRoom(struct room *root, unsigned long long id, char item[ITEM_LE
 ** If there is a room with the id, returns pointer to the room.
 ** If no room has the id, returns a NULL pointer.
 */
-struct room *getRoom(struct room *root, unsigned long long id) {
+room *getRoom(room *root, unsigned long id) {
 	if(root == NULL || root->id == id){
 		return root;
 	} else if(id > root->id) {
@@ -152,7 +154,7 @@ struct room *getRoom(struct room *root, unsigned long long id) {
 	}
 }
 
-void inorder(struct room *root) {
+void inorder(room *root) {
     if(root!=NULL) {
         inorder(root->left_child);
         printf(" %d ", root->data);
