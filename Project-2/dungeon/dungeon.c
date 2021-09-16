@@ -221,3 +221,10 @@ void setPos() {
 		}
 	}
 }
+
+/*
+** (Incomplete) Returns the shortest distance between the rooms
+*/
+// int distance(unsigned long id1, unsigned long id2) {
+
+// }
