@@ -18,20 +18,25 @@ typedef struct _room {
 	struct _room *left;
 	struct _room *right;
 	char *item;
-	int num_paths;
-	struct _room **next_rooms;
+	int num_paths; // rename adj_rooms_count
+	struct _room **next_rooms; // rename adj_rooms
 } room;
 
 typedef struct _map {
 	room *root;
 } map;
 
+typedef struct _spData{
+	room *r;
+	int dist;
+	room *prev;
+} spData; // shortest path data
+
 map dungeon; /* dungeon map */
 room *dragonRoom;
 room *playerRoom;
-// unsigned long dragonPos; /* dragon position */
-// unsigned long playerPos; /* player position */
 char *playerItem;
+spData *spArr; // shortest path's array
 int prevDist;
 
 
@@ -46,7 +51,10 @@ void inorder(room *);
 
 void setPos();
 int foundDragon();
-void swapItem(room *r);
+void swapItem();
+int distance();
+int getSPDataPos(room *r, int size);
+void clearMap(room *root);
 
 void debug() {
 	inorder(dungeon.root);
@@ -55,21 +63,23 @@ void debug() {
 
 int main() {
 	dungeon.root = NULL;
+	playerItem = NULL;
 
 	buildMap();
 	debug();
+
 	setPos();
+	prevDist = distance();
 
 	puts("Welcome to the dungeon.\n");
-	while(foundDragon() != TRUE) {
-		printf("You are in room %lu", playerPos);
-		room *r = getRoom(playerPos);
-		if(r->item != NULL) {
-			printf(", on the groud is a %s", r->item);
+	while(TRUE) {
+		printf("You are in room %lu", playerRoom->id);
+		if(playerRoom->item != NULL) {
+			printf(", on the groud is a %s", playerRoom->item);
 		}
 		puts(". Neaby are rooms");
-		for(int i = 0; i < r->num_paths; i++) {
-			room *temp = *(r->next_rooms + i); // pointer to the room
+		for(int i = 0; i < playerRoom->num_paths; i++) {
+			room *temp = *(playerRoom->next_rooms + i);
 			printf(" %lu", temp->id);
 		}
 		puts(".\n");
@@ -77,25 +87,38 @@ int main() {
 		unsigned long choice;
 		scanf("%lu", choice);
 		if(choice == (unsigned long) 0) {
-			swapItem(r);
+			swapItem();
 		} else {
-			for(int i = 0; i < r->num_paths; i++) {
-				room *temp = *(r->next_rooms + i); // pointer to the room
+			for(int i = 0; i < playerRoom->num_paths; i++) {
+				room *temp = *(playerRoom->next_rooms + i);
 				if(temp->id == choice) {
-					playerPos = choice;
+					playerRoom = getRoom(dungeon.root, choice);
 					if(foundDragon() == TRUE) {
-						// battle();
 						if(strncmp("sword", playerItem, 5) == 0) {
 							puts("You win!");
+						} else {
+							puts("You lose.");
 						}
+						break;
 					} else {
-						// hint();
+						int dist = distance();
+						if(dist == -1) {
+							puts("You have no chance of finding the dragon.\n");
+						} else if(dist == prevDist) {
+							puts("You neither getting warmer nor colder.\n");
+						} else if(dist < prevDist) {
+							puts("Getting warmer.\n");
+						} else {
+							puts("Getting colder.\n");
+						}
+						prevDist = dist;
 					}
 				}
 			}
 		}
 	}
-	free(&dungeon);
+	
+	clearMap(dungeon.root);
 	return 0;
 }
 
@@ -191,7 +214,6 @@ room *newRoom(unsigned long id) {
 	r->item = NULL;
 	r->num_paths = 0;
 	r->next_rooms = NULL;
-	r->dest_ids = NULL;
 	return r;
 }
 
@@ -217,10 +239,23 @@ room *getRoom(room *root, unsigned long id) {
 	if(root == NULL || root->id == id){
 		return root;
 	} else if(id > root->id) {
-		return search(root->right_child, id);
+		return getRoom(root->right, id);
 	} else {
-		return search(root->left_child, id);
+		return getRoom(root->left, id);
 	}
+}
+
+/*
+** Clears the map
+*/
+void clearMap(room *root) {
+	if(root!=NULL) {
+        clearMap(root->left);
+        clearMap(root->right);
+		free(root->item);
+		free(root->next_rooms);
+		free(root);
+    }
 }
 
 /*
@@ -228,14 +263,15 @@ room *getRoom(room *root, unsigned long id) {
 */
 void inorder(room *root) {
     if(root!=NULL) {
-        inorder(root->left_child);
+        inorder(root->left);
         printf(" %d ", root->data);
-        inorder(root->right_child);
+        inorder(root->right);
     }
 }
 
 /*
 ** Sets the initial positions of the player and dragon
+** Initializes (prevDist) the distance between them as well
 */
 void setPos() {
 	int unset = TRUE;
@@ -252,10 +288,13 @@ void setPos() {
 			unset = FALSE;
 		}
 	}
+	prevDist = distance();
+	free(spArr);
 }
 
 /*
-** 
+** Returns 1 (TRUE) if the player is in the same room as the dragon
+** Otherwise it returns 0 (FALSE)
 */
 int foundDragon() {
 	if(playerRoom == dragonRoom) {
@@ -266,73 +305,67 @@ int foundDragon() {
 }
 
 /*
-** (Incomplete) Returns the shortest distance between the start room and the room with the dragon
+** Returns the shortest distance between the player's position and dragon's position
 */
 int distance() {
-	typedef struct _element{
-		room *r;
-		int dist;
-		room *prev;
-	} element;
-
-	element *a = malloc(sizeof(element));
-	a->r = playerRoom;
-	a->dist = 0;
-	a->prev = NULL;
+	spArr = malloc(sizeof(spData));
+	spArr->r = playerRoom;
+	spArr->dist = 0;
+	spArr->prev = NULL;
 
 	int size = 1;
-	for(int i = 0; i < a->r->num_paths; i++) {
-		room *temp = *(a->r->next_rooms + i); // pointer to the room
-		for(int j = 0; j < size; j++) {
-			if(temp == (a->r + j)) {
-				
+	int x = 0;
+	while (x < size) {
+		spData *source = *(spArr + x);
+		for (int i = 0; i < source->r->num_paths; i++) {
+			room *r = *(source->r->next_rooms + i);
+			int rPos = getSPDataPos(r, size);
+			if(rPos == -1) {
+				++size;
+				spArr = realloc(sizeof(spData) * size);
+				*(spArr+(size-1))->r = r;
+				*(spArr+(size-1))->dist = source->dist + 1;
+				*(spArr+(size-1))->prev;
+			} else {
+				if((source->dist + 1) < (*(spArr + rPos)->dist)) {
+					*(spArr + rPos)->dist = source->dist + 1;
+					*(spArr + rPos)->prev = source->r;
+				}
 			}
 		}
+		++x;
+	}
+
+	int spPos = getSPDataPos(dragonRoom, size);
+	if(spPos != -1) {
+		int d = *(spArr + spPos)->dist;
+		free(spArr);
+		return d;
+	} else {
+		free(spArr);
+		return -1;
 	}
 }
 
 /*
-** (Incomplete) Swaps player item with room's item
+** Returns the position of spData associated with room r if the spData exists in spArr
+** Otherwise it returns -1
 */
-void swapItem(room *r) {
-
+int getSPDataPos(room *r, int size) {
+	for (int i = 0; i < size; i++) {
+		room *cmp = *(spArr + i)->r;
+		if(r == cmp) {
+			return i;
+		}
+	}
+	return -1;
 }
 
 /*
-** (Incomplete) Clears the dungeon map
+** Swaps the player's item with the item in the room that the player is currently in
 */
-// void clearMap() {
-	// delete (free) lowest leaves all the way up to the root
-// }
-
-/* Obsolete? */
-// void addRoomConnection(unsigned long id, room *adj_room) {
-// 	room *r = getRoom(dungeon.root, id);
-// 	if(r->adj_rooms == NULL) {
-// 		room *rooms = (room *) malloc(sizeof(room *));
-// 		r->adj_rooms = &rooms;
-// 		(*r->adj_rooms)[0] = adj_room; // room *adj_rooms[0] = adj_room
-// 	} else {
-// 		int num_rooms =  (int) (sizeof(r->adj_rooms) / sizeof(room *)) + 1;
-// 		(*r->adj_rooms) = (room *) realloc((*r->adj_rooms), sizeof(room *) * num_rooms);
-// 		(*r->adj_rooms)[num_rooms-1] = adj_room;
-// 	}
-// }
-// void addRoomItem(unsigned long id, char item[MAX_ITEM_LEN]) {
-// 	room *r = getRoom(dungeon.root, id);
-// 	r->item = item;
-// }
-// void setPos() {
-// 	int unset = TRUE;
-// 	while(unset) {
-// 		unsigned long pos1, pos2;
-// 		scanf("%lu %*c %lu", &pos1, &pos2);
-// 		if(getRoom(pos1) == NULL || getRoom(pos2) == NULL) {
-// 			puts("Entered invalid starting position(s). Try again.\n");
-// 		} else {
-// 			playerPos = pos1;
-// 			dragonPos = pos2;
-// 			unset = FALSE;
-// 		}
-// 	}
-// }
+void swapItem() {
+	char *temp = playerItem;
+	playerItem = playerRoom->item;
+	playerRoom->item = temp;
+}
