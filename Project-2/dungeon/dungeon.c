@@ -48,76 +48,29 @@ struct room *newRoom(unsigned long, char []);
 struct room *addRoom(room *, unsigned long, char []);
 struct room *getRoom(room *, unsigned long);
 void inorder(room *);
+void clearMap(room *root);
 
 void setPos();
 int foundDragon();
 void swapItem();
 int distance();
 int getSPDataPos(room *r, int size);
-void clearMap(room *root);
+void play();
 
 void debug() {
 	inorder(dungeon.root);
 	puts("\n");
+	clearMap(dungeon.root);
 }
 
 int main() {
 	dungeon.root = NULL;
 	playerItem = NULL;
-
 	buildMap();
 	debug();
-
 	setPos();
 	prevDist = distance();
-
-	puts("Welcome to the dungeon.\n");
-	while(TRUE) {
-		printf("You are in room %lu", playerRoom->id);
-		if(playerRoom->item != NULL) {
-			printf(", on the groud is a %s", playerRoom->item);
-		}
-		puts(". Neaby are rooms");
-		for(int i = 0; i < playerRoom->num_paths; i++) {
-			room *temp = *(playerRoom->next_rooms + i);
-			printf(" %lu", temp->id);
-		}
-		puts(".\n");
-		
-		unsigned long choice;
-		scanf("%lu", choice);
-		if(choice == (unsigned long) 0) {
-			swapItem();
-		} else {
-			for(int i = 0; i < playerRoom->num_paths; i++) {
-				room *temp = *(playerRoom->next_rooms + i);
-				if(temp->id == choice) {
-					playerRoom = getRoom(dungeon.root, choice);
-					if(foundDragon() == TRUE) {
-						if(strncmp("sword", playerItem, 5) == 0) {
-							puts("You win!");
-						} else {
-							puts("You lose.");
-						}
-						break;
-					} else {
-						int dist = distance();
-						if(dist == -1) {
-							puts("You have no chance of finding the dragon.\n");
-						} else if(dist == prevDist) {
-							puts("You neither getting warmer nor colder.\n");
-						} else if(dist < prevDist) {
-							puts("Getting warmer.\n");
-						} else {
-							puts("Getting colder.\n");
-						}
-						prevDist = dist;
-					}
-				}
-			}
-		}
-	}
-	
+	play();
 	clearMap(dungeon.root);
 	return 0;
 }
@@ -264,7 +217,7 @@ void clearMap(room *root) {
 void inorder(room *root) {
     if(root!=NULL) {
         inorder(root->left);
-        printf(" %d ", root->data);
+        printf(" %lu ", root->id);
         inorder(root->right);
     }
 }
@@ -290,6 +243,58 @@ void setPos() {
 	}
 	prevDist = distance();
 	free(spArr);
+}
+
+/*
+**
+*/
+void play() {
+	puts("Welcome to the dungeon.\n");
+	while(TRUE) {
+		printf("You are in room %lu", playerRoom->id);
+		if(playerRoom->item != NULL) {
+			printf(", on the groud is a %s", playerRoom->item);
+		}
+		puts(". Neaby are rooms");
+		for(int i = 0; i < playerRoom->num_paths; i++) {
+			room *temp = *(playerRoom->next_rooms + i);
+			printf(" %lu", temp->id);
+		}
+		puts(".\n");
+		
+		unsigned long choice;
+		scanf("%lu", choice);
+		if(choice == (unsigned long) 0) {
+			swapItem();
+		} else {
+			for(int i = 0; i < playerRoom->num_paths; i++) {
+				room *temp = *(playerRoom->next_rooms + i);
+				if(temp->id == choice) {
+					playerRoom = getRoom(dungeon.root, choice);
+					if(foundDragon() == TRUE) {
+						if(strncmp("sword", playerItem, 5) == 0) {
+							puts("You win!");
+						} else {
+							puts("You lose.");
+						}
+						break;
+					} else {
+						int dist = distance();
+						if(dist == -1) {
+							puts("You have no chance of finding the dragon. You lose.\n");
+						} else if(dist == prevDist) {
+							puts("You neither getting warmer nor colder.\n");
+						} else if(dist < prevDist) {
+							puts("Getting warmer.\n");
+						} else {
+							puts("Getting colder.\n");
+						}
+						prevDist = dist;
+					}
+				}
+			}
+		}
+	}
 }
 
 /*
