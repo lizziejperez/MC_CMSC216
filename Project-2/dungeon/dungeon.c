@@ -12,11 +12,17 @@
 #define FALSE 0
 #define MAX_ITEM_LEN 255
 
+typedef struct _deadend {
+    int len;
+    unsigned long **de_ids;
+} de;
+
 typedef struct _room {
 	unsigned long id;
 	struct _room *left;
 	struct _room *right;
 	char *item;
+	de *des;
 	int num_paths;
 	struct _room **next_rooms;
 } room;
@@ -51,16 +57,14 @@ int distance();
 int getSPDataPos(room *r, int size);
 spData *newSPData(room *r, int d, room *src);
 void clearSPArr(int size);
-void inorder(room *root); /* Debug purpose only */
+void addDE(unsigned long id, unsigned long adj_id);
 void clearDE(room *root);
-void removeDEPaths(room *root, room *r);
 
 int main() {
 	dungeon.root = NULL;
 	playerItem = NULL;
 	buildMap();
-	clearDE(dungeon.root); /* NEW */
-    inorder(dungeon.root); /* Debug purpose only */
+	clearDE(dungeon.root);
     setPos();
 	prevDist = distance();
 
@@ -115,16 +119,22 @@ int main() {
 			}
 			/* Prints the outcome */
 			if(playerRoom == dragonRoom) {
+				puts("You enter a cavernous room containing pile of gold and other riches.");
+				puts("A large red dragon swoops down uppon you from above.");
 				if(strncmp("sword", playerItem, 5) == 0) {
+					puts("You instictively slash out with the sword, and mortally wond the beast!");
 					puts("You win!");
 				} else {
-					puts("You lose.");
+					printf("The %s is useless against the mighty dragon.\n", playerItem);
+					puts("You are burned to a crisp by its flaming breath.");
+					puts("You are dead.");
 				}
 				break;
 			} else {
 				int dist = distance();
 				if(dist == -1) {
 					puts("You have no chance of finding the dragon. You lose.");
+					break;
 				} else if(dist == prevDist) {
 					puts("You're neither getting warmer nor colder.");
 				} else if(dist < prevDist) {
@@ -137,7 +147,10 @@ int main() {
 		}
 	}
 
-    clearMap(dungeon.root);
+	clearMap(dungeon.root);
+	if(playerItem != NULL) {
+		free(playerItem);
+	}
 	return 0;
 }
 
@@ -164,6 +177,7 @@ void buildMap() {
 			addRoomInfo(id);
 		}
 	}
+    clearDE(dungeon.root);
 }
 
 /*
@@ -178,9 +192,10 @@ void addRoomInfo(unsigned long id) {
 		scanf("%lu%c", &adj_id, &c);
 		if(adj_id != (unsigned long) 0) {
 			if(getRoom(dungeon.root, adj_id) == NULL) {
-				addRoom(dungeon.root, adj_id);
+				addDE(id, adj_id);
+			} else {
+				addPath(id, getRoom(dungeon.root, adj_id));
 			}
-			addPath(id, getRoom(dungeon.root, adj_id));
 		}
 		char close = ')';
 		if(c == close) {
@@ -195,7 +210,7 @@ void addRoomInfo(unsigned long id) {
 	}
 }
 
-/* 
+/*
 ** Adds an item to a room
 */
 void addItem(unsigned long id, char item[MAX_ITEM_LEN]) {
@@ -204,6 +219,8 @@ void addItem(unsigned long id, char item[MAX_ITEM_LEN]) {
 	int i = 1;
 	while(TRUE) {
 		if(item[i] == '\n') {
+			r->item = realloc(r->item, (i * sizeof(char)));
+			r->item[i-1] = '\0';
 			break;
 		}
 		r->item = realloc(r->item, (i * sizeof(char)));
@@ -228,6 +245,58 @@ void addPath(unsigned long id, room *adj_room) {
 }
 
 /*
+** Adds a dead end path id to a room
+*/
+void addDE(unsigned long id, unsigned long adj_id) {
+	room *r = getRoom(dungeon.root, id);
+	if(r->des == NULL) {
+		unsigned long *ptr = malloc(sizeof(unsigned long));
+		*ptr = adj_id;
+		r->des = malloc(sizeof(de));
+		r->des->len = 1;
+		r->des->de_ids = malloc(sizeof(unsigned long *));
+		*(r->des->de_ids) = ptr;
+	} else {
+ 		int present = FALSE;
+		for (int i = 0; i < r->des->len; i++) {
+			if(**(r->des->de_ids + i) == adj_id) {
+				present = TRUE;
+			}
+		}
+		if(present == FALSE) {
+			unsigned long *ptr = malloc(sizeof(unsigned long));
+			*ptr = adj_id;
+			r->des->de_ids = realloc(r->des->de_ids, sizeof(unsigned long *) * (r->des->len + 1));
+			*(r->des->de_ids + r->des->len) = ptr;
+			r->des->len += 1;
+		}
+	}
+}
+
+/*
+** Clears all the dead end paths
+*/
+void clearDE(room *root) {
+	if(root != NULL) {
+		if(root->des != NULL) {
+			for(int i = 0; i < root->des->len; i++) {
+				room *r = getRoom(dungeon.root, **(root->des->de_ids + i));
+				if(r != NULL) {
+					addPath(root->id, r);
+				}
+				free(*(root->des->de_ids + i));
+			}
+			free(root->des->de_ids);
+			free(root->des);
+			root->des = NULL;
+
+			clearDE(root->left);
+			clearDE(root->right);	
+		}
+	}
+}
+
+/*
 ** Creates a new room (node)
 */
 room *newRoom(unsigned long id) {
@@ -239,6 +308,7 @@ room *newRoom(unsigned long id) {
 	r->item = NULL;
 	r->num_paths = 0;
 	r->next_rooms = NULL;
+    r->des = NULL; /*** TESTING ***/
 	return r;
 }
 
@@ -280,60 +350,6 @@ void clearMap(room *root) {
 		free(root->item);
 		free(root->next_rooms);
 		free(root);
-	}
-}
-
-/*** NEW ***/
-void clearDE(room *root) {
-	if(root!=NULL) {
-		clearDE(root->left);
-		clearDE(root->right);
-		if(root->num_paths == 0) {
-			removeDEPaths(dungeon.root, root);
-			free(root);
-		}
-	}
-}
-
-/*** NEW ***/
-void removeDEPaths(room *root, room *r) {
-	if(root!=NULL) {
-		removeDEPaths(root->left, r);
-		removeDEPaths(root->right, r);
-		for (int i = 0; i < root->num_paths; i++) {
-			room *temp = *(root->next_rooms + i);
-			if(temp->id == r->id) {
-				root->num_paths -= 1;
-				for (int j = i; j < root->num_paths; j++) {
-					*(root->next_rooms + j) = *(root->next_rooms + j + 1);
-				}
-				root->next_rooms = realloc(root->next_rooms, (sizeof(room *) * root->num_paths));
-			}
-		}
-	}
-}
-
-/*** Only for debug purposes ***/
-void inorder(room *root) {
-	if(root!=NULL) {
-		inorder(root->left);
-		printf("Room %lu: ", root->id);
-		if(root->item != NULL) {
-			printf("On the groud is a %s. ", root->item);
-		}
-		for(int i = 0; i < root->num_paths; i++) {
-			if(i == 0) {
-				if(root->num_paths == 1) {
-					printf("Neaby is room");
-				} else {
-					printf("Neaby are rooms");
-				}
-			}
-			room *temp = *(root->next_rooms + i);
-			printf(" %lu", temp->id);
-		}
-		puts(".");
-		inorder(root->right);
 	}
 }
 
