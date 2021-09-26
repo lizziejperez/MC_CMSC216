@@ -1,9 +1,3 @@
-/*
-** Name: Elizabeth Perez
-** Student ID: eperez57
-** M-number: M20966722
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,6 +6,11 @@
 #define FALSE 0
 #define MAX_ITEM_LEN 255
 
+typedef struct _deadend {
+    int len;
+    unsigned long **de_ids;
+} de; /*** TESTING ***/
+
 typedef struct _room {
 	unsigned long id;
 	struct _room *left;
@@ -19,6 +18,7 @@ typedef struct _room {
 	char *item;
 	int num_paths;
 	struct _room **next_rooms;
+    de *des; /*** TESTING ***/
 } room;
 
 typedef struct _map {
@@ -52,8 +52,9 @@ int getSPDataPos(room *r, int size);
 spData *newSPData(room *r, int d, room *src);
 void clearSPArr(int size);
 void inorder(room *root); /* Debug purpose only */
+
+void addDE(unsigned long id, unsigned long adj_id);
 void clearDE(room *root);
-void removeDEPaths(room *root, room *r);
 
 int main() {
 	dungeon.root = NULL;
@@ -137,8 +138,61 @@ int main() {
 		}
 	}
 
-    clearMap(dungeon.root);
+	clearMap(dungeon.root);
 	return 0;
+}
+
+/*** TESTING ***/
+void addDE(unsigned long id, unsigned long adj_id) {
+	room *r = getRoom(dungeon.root, id);
+	if(r->des == NULL) {
+		unsigned long *ptr = malloc(sizeof(unsigned long));
+		*ptr = adj_id;
+		r->des = malloc(sizeof(de));
+		r->des->len = 1;
+		r->des->de_ids = malloc(sizeof(unsigned long *));
+		*(r->des->de_ids) = ptr;
+		printf("Added DE %lu to room %lu\n", **(r->des->de_ids + r->des->len - 1), id);
+	} else {
+ 		int present = FALSE;
+		for (int i = 0; i < r->des->len; i++) {
+			if(**(r->des->de_ids + i) == adj_id) {
+				present = TRUE;
+			}
+		}
+		if(present == FALSE) {
+			unsigned long *ptr = malloc(sizeof(unsigned long));
+			*ptr = adj_id;
+			r->des->de_ids = realloc(r->des->de_ids, sizeof(unsigned long *) * (r->des->len + 1));
+			*(r->des->de_ids + r->des->len) = ptr;
+			r->des->len += 1;
+			printf("Added DE %lu to room %lu\n", **(r->des->de_ids + r->des->len - 1), id);
+		}
+	}
+}
+/*** TESTING ***/
+void clearDE(room *root) {
+	if(root != NULL) {
+		printf("Clearing room %lu\n", root->id);
+		if(root->des != NULL) {
+			for(int i = 0; i < root->des->len; i++) {
+				room *r = getRoom(dungeon.root, **(root->des->de_ids + i));
+				if(r != NULL) {
+					printf("Adding path from %lu to %lu\n", root->id, r->id);
+					addPath(root->id, r);
+				}
+				printf("Freeing id\n");
+				free(*(root->des->de_ids + i));
+			}
+			printf("Freeing rest\n");
+			free(root->des->de_ids);
+			free(root->des);
+			root->des = NULL;
+
+			clearDE(root->left);
+			clearDE(root->right);	
+		}
+	}
 }
 
 /*
@@ -164,6 +218,7 @@ void buildMap() {
 			addRoomInfo(id);
 		}
 	}
+    clearDE(dungeon.root);
 }
 
 /*
@@ -178,9 +233,10 @@ void addRoomInfo(unsigned long id) {
 		scanf("%lu%c", &adj_id, &c);
 		if(adj_id != (unsigned long) 0) {
 			if(getRoom(dungeon.root, adj_id) == NULL) {
-				addRoom(dungeon.root, adj_id);
+				addDE(id, adj_id); /*** TESTING ***/
+			} else {
+				addPath(id, getRoom(dungeon.root, adj_id));
 			}
-			addPath(id, getRoom(dungeon.root, adj_id));
 		}
 		char close = ')';
 		if(c == close) {
@@ -195,7 +251,7 @@ void addRoomInfo(unsigned long id) {
 	}
 }
 
-/* 
+/*
 ** Adds an item to a room
 */
 void addItem(unsigned long id, char item[MAX_ITEM_LEN]) {
@@ -239,6 +295,7 @@ room *newRoom(unsigned long id) {
 	r->item = NULL;
 	r->num_paths = 0;
 	r->next_rooms = NULL;
+    r->des = NULL; /*** TESTING ***/
 	return r;
 }
 
@@ -280,36 +337,6 @@ void clearMap(room *root) {
 		free(root->item);
 		free(root->next_rooms);
 		free(root);
-	}
-}
-
-/*** NEW ***/
-void clearDE(room *root) {
-	if(root!=NULL) {
-		clearDE(root->left);
-		clearDE(root->right);
-		if(root->num_paths == 0) {
-			removeDEPaths(dungeon.root, root);
-			free(root);
-		}
-	}
-}
-
-/*** NEW ***/
-void removeDEPaths(room *root, room *r) {
-	if(root!=NULL) {
-		removeDEPaths(root->left, r);
-		removeDEPaths(root->right, r);
-		for (int i = 0; i < root->num_paths; i++) {
-			room *temp = *(root->next_rooms + i);
-			if(temp->id == r->id) {
-				root->num_paths -= 1;
-				for (int j = i; j < root->num_paths; j++) {
-					*(root->next_rooms + j) = *(root->next_rooms + j + 1);
-				}
-				root->next_rooms = realloc(root->next_rooms, (sizeof(room *) * root->num_paths));
-			}
-		}
 	}
 }
 
