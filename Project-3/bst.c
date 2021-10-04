@@ -1,26 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "bst.h"
 
 typedef struct node {
 	char *val;
 	struct node *next;
 	struct node *prev;
 } node;
-
-typedef struct bst {
-	int count;
-	struct node *head;
-	struct node *curr;
-} bst;
-
-#define BST_SUCCESS            1
-#define BST_ERR_UNKNOWN        0
-#define BST_ERR_NULL_POINTER  -1
-#define BST_ERR_NULL_TREE     -2
-#define BST_ERR_NULL_VALUE    -4
-#define BST_ERR_MEM_ALLOC     -8
-#define BST_ERR_MEM_FREE     -16
-#define BST_ERR_NOT_FOUND    -32
 
 int bst_create(bst *newTree) {
 	newTree->count = 0;
@@ -31,6 +17,7 @@ int bst_create(bst *newTree) {
 
 int bst_insert(bst *theTree, char *value) {
 	node *newNode = malloc(sizeof(node));
+	if(newNode==NULL) return BST_ERR_MEM_ALLOC;
 	int len = 0;
 	while(1) {
 		if(*(value+len) == 0) break;
@@ -38,14 +25,13 @@ int bst_insert(bst *theTree, char *value) {
 	}
 	len++;
 	newNode->val = malloc(sizeof(char) * len);
+	if(newNode->val==NULL) return BST_ERR_MEM_ALLOC;
 	strcpy(newNode->val, value);
 
-	if(theTree->count == 0) {
-		theTree->head = newNode;
-	} else {
-		/**/
-	}
+	theTree->curr->next = newNode;
 	theTree->count++;
+	theTree->curr = newNode;
+	return BST_SUCCESS;
 }
 
 int bst_first(bst *theTree, char *dst) {
