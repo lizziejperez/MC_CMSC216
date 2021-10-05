@@ -139,6 +139,19 @@ int bst_remove(bst *theTree, char *value) {
 				root->next = NULL;
 			} else if((theNode->next!=NULL)&&(theNode->prev!=NULL)) {
 				/*if the node has two children*/
+				if(theNode->next->next==NULL) { /*if one right leaf*/
+					theNode->next->prev = theNode->prev;
+					root->next = theNode->next;
+				} else {
+					node *temp = theNode->next; /*storing right subtree*/
+					while(temp->prev->prev!=NULL) {
+						temp = temp->prev;
+					} /*set temp to pointer to the parent of the 'smallest' node in right subtree*/
+					root->next = temp->prev; /*replaced the node to remove with the 'smallest' node in right subtree*/
+					root->next->prev = theNode->prev;
+					root->next->next = theNode->next;
+					temp->prev = NULL; /*removed parent pointer to 'smallest' node in right subtree*/
+				}
 			} else {
 				root->next = (theNode->next!=NULL) ? theNode->next : theNode->prev;
 			}
@@ -154,6 +167,19 @@ int bst_remove(bst *theTree, char *value) {
 				root->prev = NULL;
 			} else if((theNode->next!=NULL)&&(theNode->prev!=NULL)) {
 				/*if the node has two children*/
+				if(theNode->next->next==NULL) { /*if one right leaf*/
+					theNode->next->prev = theNode->prev;
+					root->prev = theNode->next;
+				} else {
+					node *temp = theNode->next; /*storing right subtree*/
+					while(temp->prev->prev!=NULL) {
+						temp = temp->prev;
+					} /*set temp to pointer to the parent of the 'smallest' node in right subtree*/
+					root->prev= temp->prev; /*replaced the node to remove with the 'smallest' node in right subtree*/
+					root->prev->prev = theNode->prev;
+					root->prev->next = theNode->next;
+					temp->prev = NULL; /*removed parent pointer to 'smallest' node in right subtree*/
+				}
 			} else {
 				root->prev = (theNode->next!=NULL) ? theNode->next : theNode->prev;
 			}
