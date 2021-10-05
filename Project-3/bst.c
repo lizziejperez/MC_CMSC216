@@ -16,7 +16,8 @@ int bst_create(bst *newTree) {
 }
 
 int bst_insert(bst *theTree, char *value) {
-	if(theTree->head==NULL) return BST_ERR_NULL_TREE;
+	if(value==NULL) return BST_ERR_NULL_VALUE;
+
 	node *newNode = malloc(sizeof(node));
 	if(newNode==NULL) return BST_ERR_MEM_ALLOC;
 	int len = 0;
@@ -28,10 +29,20 @@ int bst_insert(bst *theTree, char *value) {
 	newNode->val = malloc(sizeof(char) * len);
 	if(newNode->val==NULL) return BST_ERR_MEM_ALLOC;
 	strcpy(newNode->val, value);
+	if(strcmp(newNode->val, value)!=0) return BST_ERR_UNKNOWN;
+	newNode->next = NULL;
+	newNode->prev = NULL;
 
+	if(theTree->count==0) {
+		theTree->head = newNode;
+		theTree->count++;
+		return BST_SUCCESS;
+	}
+
+	if(theTree->head==NULL) return BST_ERR_NULL_TREE;
 	theTree->curr = theTree->head;
 	while(theTree->curr!=NULL) {
-		if(strcmp(value, theTree->curr) < 0) {
+		if(strcmp(newNode->val, theTree->curr)>0) {
 			if(theTree->curr->next==NULL) {
 				theTree->curr->next = newNode;
 				theTree->count++;
@@ -50,81 +61,125 @@ int bst_insert(bst *theTree, char *value) {
 	return BST_ERR_UNKNOWN;
 }
 
+/*Q: Should theTree->curr only be updated if method is successful?*/
 int bst_first(bst *theTree, char *dst) {
 	if(theTree->head==NULL) return BST_ERR_NULL_TREE;
-	theTree->curr = theTree->head->prev;
+	theTree->curr = theTree->head;
 	while(theTree->curr!=NULL) {
-		if(theTree->curr->prev==NULL) break;
+		if(theTree->curr->prev==NULL) {
+			strcpy(dst, theTree->curr->val);
+			if(strcmp(dst, theTree->curr->val)!=0) return BST_ERR_UNKNOWN;
+			return BST_SUCCESS;
+		}
 		theTree->curr = theTree->curr->prev;
 	}
-	if(theTree->head==NULL) return BST_ERR_NULL_TREE;
-	if(theTree->curr==NULL) return BST_ERR_UNKNOWN;
-	strcpy(dst, theTree->curr->val);
-	return BST_SUCCESS;
+	return BST_ERR_UNKNOWN;
 }
 
 int bst_next(bst *theTree, char *dst) {
 	if(theTree->head==NULL) return BST_ERR_NULL_TREE;
-	dst = theTree->curr->next->val;
+	if(theTree->curr->next==NULL) return BST_ERR_NULL_POINTER;
+	strcpy(dst, theTree->curr->next->val);
+	if(strcmp(dst, theTree->curr->next->val)!=0) return BST_ERR_UNKNOWN;
 	theTree->curr = theTree->curr->next;
 	return BST_SUCCESS;
 }
 
 int bst_previous(bst *theTree, char *dst) {
 	if(theTree->head==NULL) return BST_ERR_NULL_TREE;
-	dst = theTree->curr->prev->val;
+	if(theTree->curr->next==NULL) return BST_ERR_NULL_POINTER;
+	strcpy(dst, theTree->curr->prev->val);
+	if(strcmp(dst, theTree->curr->prev->val)!=0) return BST_ERR_UNKNOWN;
 	theTree->curr = theTree->curr->prev;
 	return BST_SUCCESS;
 }
 
+/*Q: Should theTree->curr only be updated if method is successful?*/
 int bst_last(bst *theTree, char *dst) {
 	if(theTree->head==NULL) return BST_ERR_NULL_TREE;
-	theTree->curr = theTree->head->next;
+	theTree->curr = theTree->head;
 	while(theTree->curr!=NULL) {
-		if(theTree->curr->next==NULL) break;
+		if(theTree->curr->next==NULL) {
+			strcpy(dst, theTree->curr->val);
+			if(strcmp(dst, theTree->curr->val)!=0) return BST_ERR_UNKNOWN;
+			return BST_SUCCESS;
+		}
 		theTree->curr = theTree->curr->next;
 	}
-	if(theTree->curr==NULL) return BST_ERR_UNKNOWN;
-	strcpy(dst, theTree->curr->val);
-	return BST_SUCCESS;
+	return BST_ERR_UNKNOWN;
 }
 
 int bst_find(bst *theTree, char *value) {
 	if(theTree->head==NULL) return BST_ERR_NULL_TREE;
-	theTree->curr = theTree->head;
-	while(theTree->curr!=NULL) {
-		if(strcmp(value, theTree->curr) == 0)
+	if(value==NULL) return BST_ERR_NULL_VALUE;
+	node *root = theTree->head;
+	while(root!=NULL) {
+		if(strcmp(value, root->val)==0) {
+			theTree->curr = root;
 			return BST_SUCCESS;
-		if(strcmp(value, theTree->curr) < 0)
-			theTree->curr = theTree->curr->next;
-		else
-			theTree->curr = theTree->curr->prev;
+		}
+		root = (strcmp(value, root->val)>0) ? theTree->curr->next : theTree->curr->prev;
 	}
 	return BST_ERR_NOT_FOUND;
 }
 
+/*Q: Should multiple instances of the same values all be removed?*/
 int bst_remove(bst *theTree, char *value) {
 	if(theTree->head==NULL) return BST_ERR_NULL_TREE;
-	while(bst_find(theTree, value)) {
-		node *next = theTree->curr->next;
-		node *prev = theTree->curr->prev;
-		/*code*/
+	if(value==NULL) return BST_ERR_NULL_VALUE;
+
+	node *root = theTree->head;
+	node *theNode = NULL;
+
+	while(root!=NULL) {
+		int cmpNext = strcmp(value, root->next->val);
+		if(cmpNext==0) {
+			theNode = root->next;
+			if((theNode->next==NULL)&&(theNode->prev==NULL)) {
+				root->next = NULL;
+			} else if((theNode->next!=NULL)&&(theNode->prev!=NULL)) {
+				/*if the node has two children*/
+			} else {
+				root->next = (theNode->next!=NULL) ? theNode->next : theNode->prev;
+			}
+			free(theNode->val);
+			free(theNode);
+			theTree->count--;
+		}
+
+		int cmpPrev = strcmp(value, root->prev->val);
+		if(cmpPrev==0) {
+			theNode = root->prev;
+			if((theNode->next==NULL)&&(theNode->prev==NULL)) {
+				root->prev = NULL;
+			} else if((theNode->next!=NULL)&&(theNode->prev!=NULL)) {
+				/*if the node has two children*/
+			} else {
+				root->prev = (theNode->next!=NULL) ? theNode->next : theNode->prev;
+			}
+			free(theNode->val);
+			free(theNode);
+			theTree->count--;
+		}
+
+		root = (strcmp(value, root->val)>0) ? theNode->next : theNode->prev;
+	}
+	return BST_SUCCESS;
+}
+
+void clear(node *root) {
+	if(root!=NULL) {
+		clear(root->next);
+		clear(root->prev);
+		free(root->val);
+		free(root);
 	}
 }
 
 int bst_destroy(bst *theTree) {
-	char *dst;
-	while(bst_first(theTree, dst)) {
-		bst_remove(theTree, dst);
-	}
-	while(theTree->curr!=NULL) {
-		node *root = theTree->curr;
-		theTree->curr = theTree->curr->next;
-		bst_destroy(theTree);
-		theTree->curr = theTree->curr->prev;
-		bst_destroy(theTree);
-		free(root->val);
-		free(root);
-	}
+	clear(theTree->head);
+	theTree->count = 0;
+	theTree->head = NULL;
+	theTree->curr = NULL;
 	return BST_SUCCESS;
 }
