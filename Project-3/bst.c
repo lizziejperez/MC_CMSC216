@@ -4,11 +4,14 @@
 
 typedef struct node {
 	char *val;
+	int dcount; /*duplicate count*/
 	struct node *next;
 	struct node *prev;
 } node;
 
 int bst_create(bst *newTree) {
+	newTree = malloc(sizeof(bst));
+	if(newTree==NULL) return BST_ERR_MEM_ALLOC;
 	newTree->count = 0;
 	newTree->head = NULL;
 	newTree->curr = NULL;
@@ -17,6 +20,10 @@ int bst_create(bst *newTree) {
 
 int bst_insert(bst *theTree, char *value) {
 	if(value==NULL) return BST_ERR_NULL_VALUE;
+	if(bst_find(theTree, value)==BST_SUCCESS) {
+		theTree->curr->dcount++;
+		return BST_SUCCESS;
+	}
 
 	node *newNode = malloc(sizeof(node));
 	if(newNode==NULL) return BST_ERR_MEM_ALLOC;
@@ -32,6 +39,7 @@ int bst_insert(bst *theTree, char *value) {
 	if(strcmp(newNode->val, value)!=0) return BST_ERR_UNKNOWN;
 	newNode->next = NULL;
 	newNode->prev = NULL;
+	newNode->dcount = 0;
 
 	if(theTree->count==0) {
 		theTree->head = newNode;
@@ -61,7 +69,7 @@ int bst_insert(bst *theTree, char *value) {
 	return BST_ERR_UNKNOWN;
 }
 
-/*Q: Should theTree->curr only be updated if method is successful?*/
+/*Q: Should theTree->curr only be updated if method is successful? yes*/
 int bst_first(bst *theTree, char *dst) {
 	if(theTree->head==NULL) return BST_ERR_NULL_TREE;
 	theTree->curr = theTree->head;
@@ -94,7 +102,7 @@ int bst_previous(bst *theTree, char *dst) {
 	return BST_SUCCESS;
 }
 
-/*Q: Should theTree->curr only be updated if method is successful?*/
+/*Q: Should theTree->curr only be updated if method is successful? yes*/
 int bst_last(bst *theTree, char *dst) {
 	if(theTree->head==NULL) return BST_ERR_NULL_TREE;
 	theTree->curr = theTree->head;
@@ -123,74 +131,69 @@ int bst_find(bst *theTree, char *value) {
 	return BST_ERR_NOT_FOUND;
 }
 
-/*Q: Should multiple instances of the same values all be removed?*/
+/*
+** Returns ptr to the node to replace the removed node in the bst
+*/
+node *remove(node *theNode) {
+	if((theNode->next==NULL)&&(theNode->prev==NULL)) return NULL;
+			
+	if((theNode->next!=NULL)&&(theNode->prev!=NULL)) {
+		node *nroot = theNode->next;
+		node *replacement;
+
+		if(nroot->prev==NULL) {
+			replacement = nroot;
+			replacement->prev = theNode->prev;
+			return replacement;
+		}
+
+		while(nroot->prev->prev!=NULL) nroot = nroot->prev;
+		replacement = nroot->prev;
+		nroot->prev = NULL;
+		replacement->prev = theNode->prev;
+		replacement->next = theNode->next;
+		return replacement;
+	}
+
+	return (theNode->next!=NULL) ? theNode->next : theNode->prev;
+}
+
 int bst_remove(bst *theTree, char *value) {
 	if(theTree->head==NULL) return BST_ERR_NULL_TREE;
 	if(value==NULL) return BST_ERR_NULL_VALUE;
 
 	node *root = theTree->head;
-	node *theNode = NULL;
 
 	while(root!=NULL) {
-		int cmpNext = strcmp(value, root->next->val);
-		if(cmpNext==0) {
-			theNode = root->next;
-			if((theNode->next==NULL)&&(theNode->prev==NULL)) {
-				root->next = NULL;
-			} else if((theNode->next!=NULL)&&(theNode->prev!=NULL)) {
-				/*if the node has two children*/
-				if(theNode->next->next==NULL) { /*if one right leaf*/
-					theNode->next->prev = theNode->prev;
-					root->next = theNode->next;
-				} else {
-					node *temp = theNode->next; /*storing right subtree*/
-					while(temp->prev->prev!=NULL) {
-						temp = temp->prev;
-					} /*set temp to pointer to the parent of the 'smallest' node in right subtree*/
-					root->next = temp->prev; /*replaced the node to remove with the 'smallest' node in right subtree*/
-					root->next->prev = theNode->prev;
-					root->next->next = theNode->next;
-					temp->prev = NULL; /*removed parent pointer to 'smallest' node in right subtree*/
-				}
-			} else {
-				root->next = (theNode->next!=NULL) ? theNode->next : theNode->prev;
+		if(strcmp(value, root->next->val)==0) {
+			node *theNode = root->next;
+			if(theNode->dcount>0){
+				theNode->dcount--;
+				return BST_SUCCESS;
 			}
+			root->next = remove(theNode);
 			free(theNode->val);
 			free(theNode);
 			theTree->count--;
+			return BST_SUCCESS;
 		}
 
-		int cmpPrev = strcmp(value, root->prev->val);
-		if(cmpPrev==0) {
-			theNode = root->prev;
-			if((theNode->next==NULL)&&(theNode->prev==NULL)) {
-				root->prev = NULL;
-			} else if((theNode->next!=NULL)&&(theNode->prev!=NULL)) {
-				/*if the node has two children*/
-				if(theNode->next->next==NULL) { /*if one right leaf*/
-					theNode->next->prev = theNode->prev;
-					root->prev = theNode->next;
-				} else {
-					node *temp = theNode->next; /*storing right subtree*/
-					while(temp->prev->prev!=NULL) {
-						temp = temp->prev;
-					} /*set temp to pointer to the parent of the 'smallest' node in right subtree*/
-					root->prev= temp->prev; /*replaced the node to remove with the 'smallest' node in right subtree*/
-					root->prev->prev = theNode->prev;
-					root->prev->next = theNode->next;
-					temp->prev = NULL; /*removed parent pointer to 'smallest' node in right subtree*/
-				}
-			} else {
-				root->prev = (theNode->next!=NULL) ? theNode->next : theNode->prev;
+		if(strcmp(value, root->prev->val)==0) {
+			node *theNode = root->prev;
+			if(theNode->dcount>0){
+				theNode->dcount--;
+				return BST_SUCCESS;
 			}
+			root->prev = remove(theNode);
 			free(theNode->val);
 			free(theNode);
 			theTree->count--;
+			return BST_SUCCESS;
 		}
 
-		root = (strcmp(value, root->val)>0) ? theNode->next : theNode->prev;
+		root = (strcmp(value, root->val)>0) ? root->next : root->prev;
 	}
-	return BST_SUCCESS;
+	return BST_ERR_NOT_FOUND;
 }
 
 void clear(node *root) {
