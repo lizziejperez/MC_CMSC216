@@ -26,18 +26,18 @@ void test1() {
 
 	puts("TEST 1: create, insert, destroy");
 
-	puts("Testing bst_create:");
+	puts("Testing create:");
 	status = bst_create(&tree);
 	if(status!=BST_SUCCESS) printf("%d error", status);
 	if(tree.count!=0) puts("tree count wrong value");
 	if(tree.head!=NULL) puts("tree head not null");
 	if(tree.curr!=NULL) puts("tree curr not null");
 
-	puts("Testing bst_insert (1):");
+	puts("Testing insert (1):");
 	status = bst_insert(&tree, "Howdy!");
 	if(status!=BST_SUCCESS) printf("%d error\n", status);
 
-	puts("Testing bst_insert (2):");
+	puts("Testing insert (2):");
 	status = bst_insert(&tree, "What's up?");
 	if(status!=BST_SUCCESS) printf("s1 %d error\n", status);
 	status = bst_insert(&tree, "Game on.");
@@ -47,11 +47,11 @@ void test1() {
 	status = bst_insert(&tree, "I don't know.");
 	if(status!=BST_SUCCESS) printf("s4 %d error\n", status);
 
-	puts("Testing bst_insert (3):");
+	puts("Testing insert (3):");
 	status = bst_insert(&tree, "Howdy!");
 	if(status!=BST_SUCCESS) printf("%d error", status);
 
-	puts("Testing bst_destroy:");
+	puts("Testing destroy:");
 	status = bst_destroy(&tree);
 	if(status!=BST_SUCCESS) printf("%d error", status);
 
@@ -72,7 +72,7 @@ void test2() {
 	bst_insert(&tree, "I don't know.");
 	bst_insert(&tree, "Howdy!");
 
-	puts("Testing bst_first:");
+	puts("Testing first:");
 	dst = malloc(sizeof(char)*MAX);
 	status = bst_first(&tree, dst);
 	if(status!=BST_SUCCESS)
@@ -81,7 +81,7 @@ void test2() {
 		printf("result: %s\nexpected: Game on.\n", dst);
 	free(dst);
 
-	puts("Testing bst_last:");
+	puts("Testing last:");
 	dst = malloc(sizeof(char)*MAX);
 	status = bst_last(&tree, dst);
 	if(status!=BST_SUCCESS)
@@ -108,17 +108,17 @@ void test3() {
 	bst_insert(&tree, "I don't know.");
 	bst_insert(&tree, "Howdy!");
 
-	puts("Testing bst_find (1):");
+	puts("Testing find (1):");
 	value = "N/A";
 	status = bst_find(&tree, value);
 	if(status!=BST_ERR_NOT_FOUND) printf("%d error", status);
 
-	puts("Testing bst_find (2):");
+	puts("Testing find (2):");
 	value = "What's up?";
 	status = bst_find(&tree, value);
 	if(status!=BST_SUCCESS) printf("%d error", status);
 
-	puts("Testing bst_find (3):");
+	puts("Testing find (3):");
 	value = "Howdy!";
 	status = bst_find(&tree, value);
 	if(status!=BST_SUCCESS) printf("%d error", status);
@@ -141,14 +141,14 @@ void test4() {
 	bst_insert(&tree, "I don't know.");
 	bst_insert(&tree, "Howdy!");
 
-	puts("Testing bst_next (1):");
+	puts("Testing next (1):");
 	dst = malloc(sizeof(char)*MAX);
 	status = bst_next(&tree, dst);
 	if(status!=BST_ERR_NULL_POINTER) printf("%d error\n", status);
 	if(status==BST_SUCCESS) printf("result: %s\nnot expected result\n", dst);
 	free(dst);
 
-	puts("Testing bst_previous (1):");
+	puts("Testing previous (1):");
 	dst = malloc(sizeof(char)*MAX);
 	status = bst_previous(&tree, dst);
 	if(status!=BST_ERR_NULL_POINTER) printf("%d error\n", status);
@@ -158,7 +158,7 @@ void test4() {
 	value = "Howdy!";
 	bst_find(&tree, value);
 
-	puts("Testing bst_next (2):");
+	puts("Testing next (2):");
 	dst = malloc(sizeof(char)*MAX);
 	status = bst_next(&tree, dst);
 	if(status!=BST_SUCCESS)
@@ -169,7 +169,7 @@ void test4() {
 
 	bst_find(&tree, value);
 
-	puts("Testing bst_previous (2):");
+	puts("Testing previous (2):");
 	dst = malloc(sizeof(char)*MAX);
 	status = bst_previous(&tree, dst);
 	if(status!=BST_SUCCESS)
@@ -196,12 +196,12 @@ void test5() {
 	bst_insert(&tree, "I don't know.");
 	bst_insert(&tree, "Howdy!");
 
-	puts("Testing bst_remove (1):");
+	puts("Testing remove (1):");
 	value = "Game on.";
 	status = bst_remove(&tree, value);
 	if(status!=BST_SUCCESS) printf("%d error", status);
 
-	puts("Testing bst_remove (2):");
+	puts("Testing remove (2):");
 	value = "Nothing";
 	status = bst_remove(&tree, value);
 	if(status!=BST_ERR_NOT_FOUND) printf("%d error", status);
