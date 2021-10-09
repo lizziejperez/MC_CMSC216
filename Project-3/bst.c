@@ -13,13 +13,17 @@ typedef struct node {
 int bst_create(bst *newTree) {
 	if(newTree==NULL) return BST_ERR_MEM_ALLOC; /*change to BST_ERR_NULL_POINTER?*/
 	*newTree = (bst){.count=0,.head=NULL,.curr=NULL};
+	if((newTree->count!=0)||(newTree->head!=NULL)||(newTree->curr!=NULL)) return BST_ERR_UNKNOWN;
 	return BST_SUCCESS;
 }
 
 int bst_insert(bst *theTree, char *value) {
+	if(theTree==NULL) return BST_ERR_NULL_TREE;
 	if(value==NULL) return BST_ERR_NULL_VALUE;
+	node *curr = theTree->curr;
 	if(bst_find(theTree, value)==BST_SUCCESS) {
 		theTree->curr->dcount++;
+		theTree->curr = curr;
 		return BST_SUCCESS;
 	}
 
@@ -46,7 +50,7 @@ int bst_insert(bst *theTree, char *value) {
 	}
 
 	if(theTree->head==NULL) return BST_ERR_NULL_TREE;
-	node *curr = theTree->curr;
+
 	theTree->curr = theTree->head;
 	while(theTree->curr!=NULL) {
 		if(strcmp(newNode->val, theTree->curr->val)>0) {
@@ -92,7 +96,7 @@ int bst_first(bst *theTree, char *dst) {
 
 int bst_next(bst *theTree, char *dst) {
 	if(theTree==NULL||theTree->head==NULL) return BST_ERR_NULL_TREE;
-	if(theTree->curr->next==NULL) return BST_ERR_NULL_POINTER;
+	if((theTree->curr==NULL)||(theTree->curr->next==NULL)) return BST_ERR_NULL_POINTER;
 	strcpy(dst, theTree->curr->next->val);
 	if(strcmp(dst, theTree->curr->next->val)!=0) return BST_ERR_UNKNOWN;
 	theTree->curr = theTree->curr->next;
@@ -101,7 +105,7 @@ int bst_next(bst *theTree, char *dst) {
 
 int bst_previous(bst *theTree, char *dst) {
 	if(theTree==NULL||theTree->head==NULL) return BST_ERR_NULL_TREE;
-	if(theTree->curr->next==NULL) return BST_ERR_NULL_POINTER;
+	if((theTree->curr==NULL)||(theTree->curr->next==NULL)) return BST_ERR_NULL_POINTER;
 	strcpy(dst, theTree->curr->prev->val);
 	if(strcmp(dst, theTree->curr->prev->val)!=0) return BST_ERR_UNKNOWN;
 	theTree->curr = theTree->curr->prev;
@@ -219,8 +223,8 @@ int bst_remove(bst *theTree, char *value) {
 void node_destroy(node *root) {
 	if(root!=NULL) {
 		node_destroy(root->prev);
+		printf("%s %d\n", root->val, root->dcount); /* debug */
 		node_destroy(root->next);
-		printf("%s\n",root->val); /* debug */
 		free(root->val);
 		free(root);
 	}
