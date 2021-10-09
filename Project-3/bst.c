@@ -11,7 +11,7 @@ typedef struct node {
 } node;
 
 int bst_create(bst *newTree) {
-	if(newTree==NULL) return BST_ERR_MEM_ALLOC;
+	if(newTree==NULL) return BST_ERR_MEM_ALLOC; /*change to BST_ERR_NULL_POINTER?*/
 	*newTree = (bst){.count=0,.head=NULL,.curr=NULL};
 	return BST_SUCCESS;
 }
@@ -218,8 +218,9 @@ int bst_remove(bst *theTree, char *value) {
 */
 void node_destroy(node *root) {
 	if(root!=NULL) {
-		node_destroy(root->next);
 		node_destroy(root->prev);
+		node_destroy(root->next);
+		printf("%s\n",root->val); /* debug */
 		free(root->val);
 		free(root);
 	}
@@ -227,6 +228,7 @@ void node_destroy(node *root) {
 
 int bst_destroy(bst *theTree) {
 	if(theTree==NULL||theTree->head==NULL) return BST_ERR_NULL_TREE;
+	printf("Tree Inorder (L-G)\n"); /* debug */
 	node_destroy(theTree->head);
 	theTree->count = 0;
 	theTree->head = NULL;
