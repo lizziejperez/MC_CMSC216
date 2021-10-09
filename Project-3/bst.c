@@ -11,13 +11,8 @@ typedef struct node {
 } node;
 
 int bst_create(bst *newTree) {
-	/*newTree = malloc(sizeof(bst));*/
 	if(newTree==NULL) return BST_ERR_MEM_ALLOC;
 	*newTree = (bst){.count=0,.head=NULL,.curr=NULL};
-	if(newTree==NULL) return BST_ERR_NULL_POINTER;
-	/*newTree->count = 0;
-	newTree->head = NULL;
-	newTree->curr = NULL;*/
 	return BST_SUCCESS;
 }
 
