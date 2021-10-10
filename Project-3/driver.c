@@ -11,9 +11,9 @@ void test4();
 void test5();
 
 int main() {
-	test1();
+	/*test1();
 	test2();
-	test3();
+	test3();*/
 	test4();
 	test5();
 
@@ -200,6 +200,15 @@ void test5() {
 	value = "Game on.";
 	status = bst_remove(&tree, value);
 	if(status!=BST_SUCCESS) printf("%d error", status);
+
+	bst_destroy(&tree);
+	bst_create(&tree);
+	bst_insert(&tree, "Howdy!");
+	bst_insert(&tree, "What's up?");
+	bst_insert(&tree, "Game on.");
+	bst_insert(&tree, "No way..");
+	bst_insert(&tree, "I don't know.");
+	bst_insert(&tree, "Howdy!");
 
 	puts("Testing remove (2):");
 	value = "Nothing";
