@@ -214,8 +214,21 @@ void test5() {
 	value = "Nothing";
 	status = bst_remove(&tree, value);
 	if(status!=BST_ERR_NOT_FOUND) printf("%d error", status);
-	puts("after tests");
 
 	bst_destroy(&tree);
+	bst_create(&tree);
+	bst_insert(&tree, "Howdy!");
+	bst_insert(&tree, "What's up?");
+	bst_insert(&tree, "Game on.");
+	bst_insert(&tree, "No way..");
+	bst_insert(&tree, "I don't know.");
+	bst_insert(&tree, "Howdy!");
+
+	puts("Testing remove (3):");
+	value = "Howdy!";
+	status = bst_remove(&tree, value);
+	if(status!=BST_SUCCESS) printf("%d error", status);
+	status = bst_remove(&tree, value);
+	if(status!=BST_SUCCESS) printf("%d error", status);
 	puts("--------------------");
 }
