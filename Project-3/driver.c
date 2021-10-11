@@ -232,3 +232,26 @@ void test5() {
 	if(status!=BST_SUCCESS) printf("%d error", status);
 	puts("--------------------");
 }
+
+void alphSetup(bst *tree) {
+	bst_create(tree);
+	bst_insert(tree, "M");
+	bst_insert(tree, "G");
+	bst_insert(tree, "S");
+	bst_insert(tree, "A");
+	bst_insert(tree, "Z");
+	bst_insert(tree, "D");
+	bst_insert(tree, "W");
+	bst_insert(tree, "C");
+	bst_insert(tree, "E");
+	bst_insert(tree, "V");
+	bst_insert(tree, "X");
+	/*       M
+	*    ___/ \___
+	*   G         S
+	*  / \       / \
+	* A   D     W   Z
+	*    / \   / \
+	*   C   E V   X
+	*/
+}
