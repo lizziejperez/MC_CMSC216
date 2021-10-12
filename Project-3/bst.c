@@ -11,6 +11,15 @@ typedef struct node {
 	struct node *prev;
 } node;
 
+/*
+** Frees every node under the initially given root node recursively
+*/
+void node_destroy(node *root);
+/*
+** Returns ptr to the node to replace the removed node in the bst
+*/
+node *node_replace(node *theNode);
+
 int bst_create(bst *newTree) {
 	if(newTree==NULL) return BST_ERR_MEM_ALLOC; /*change to BST_ERR_NULL_POINTER?*/
 	*newTree = (bst){.count=0,.head=NULL,.curr=NULL};
@@ -146,16 +155,11 @@ int bst_find(bst *theTree, char *value) {
 	}
 	return BST_ERR_NOT_FOUND;
 }
-/* DEBUGING */
-/*
-** Returns ptr to the node to replace the removed node in the bst
-*/
+
 node *node_replace(node *theNode) {
-	puts("Replacing the node"); /* debug code */
 	if((theNode->next==NULL)&&(theNode->prev==NULL)) return NULL;
 			
 	if((theNode->next!=NULL)&&(theNode->prev!=NULL)) {
-		puts("Two children found"); /* debug code */
 		node *nroot = theNode->next;
 		node *replacement;
 
@@ -172,31 +176,9 @@ node *node_replace(node *theNode) {
 		replacement->next = theNode->next;
 		return replacement;
 	}
-
-	puts("One child only"); /* debug code */
 	return (theNode->next!=NULL) ? theNode->next : theNode->prev;
 }
-/* DEBUGING */
-/*
-** Removes a node (theNode) from it's parent (root) node
-*/
-/*int node_remove(node *root, node *theNode) {
-	puts("Found node. Removing..");
-	if(theNode->dcount>0){
-		theNode->dcount--;
-		return BST_SUCCESS;
-	}
 
-	if(strcmp(theNode->val, root->val)>0)
-		root->next = node_replace(theNode);
-	else
-		root->prev = node_replace(theNode);
-	
-	free(theNode->val);
-	free(theNode);
-	return BST_SUCCESS;
-}*/
-/* DEBUGING */
 int bst_remove(bst *theTree, char *value) {
 	node *curr = theTree->curr;
 	int find_status = bst_find(theTree, value);
@@ -235,42 +217,11 @@ int bst_remove(bst *theTree, char *value) {
 		return BST_SUCCESS;
 	}
 	return BST_ERR_UNKNOWN;
-	/*
-	node *root = theTree->curr;
-	int find_status = bst_find(theTree, value);
-	if(find_status!=BST_SUCCESS) return find_status;
-	theTree->curr = root;
-
-	puts("Checking head");
-	root = theTree->head;
-	if(strcmp(value, root->val)==0) {
-		if(root->dcount>0){
-			root->dcount--;
-			return BST_SUCCESS;
-		}
-		theTree->head = node_replace(root);
-		free(root->val);
-		free(root);
-		return BST_SUCCESS;
-	}
-
-	puts("Searching..");
-	while(root!=NULL) {
-		if(strcmp(value, root->next->val)==0) return node_remove(root, root->next);
-		if(strcmp(value, root->prev->val)==0) return node_remove(root, root->prev);
-
-		root = (strcmp(value, root->val)>0) ? root->next : root->prev;
-	}
-	return BST_ERR_UNKNOWN; */
 }
 
-/*
-** Frees every node under the initially given root node recursively
-*/
 void node_destroy(node *root) {
 	if(root!=NULL) {
 		node_destroy(root->prev);
-		printf("%s %d\n", root->val, root->dcount); /* debug code */
 		node_destroy(root->next);
 		free(root->val);
 		free(root);
@@ -279,7 +230,6 @@ void node_destroy(node *root) {
 
 int bst_destroy(bst *theTree) {
 	if(theTree==NULL||theTree->head==NULL) return BST_ERR_NULL_TREE;
-	printf("Tree Inorder (L-G)\n"); /* debug code */
 	node_destroy(theTree->head);
 	theTree->count = 0;
 	theTree->head = NULL;

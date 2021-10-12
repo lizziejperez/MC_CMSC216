@@ -273,10 +273,10 @@ void test5() {
 	value = "No way.."; /*one child*/
 	status = bst_remove(&tree, value);
 	if(status!=BST_SUCCESS) printf("(Tree 1) remove - normal case: %d error", status);
-	value = "G"; /*2 children*/
+	value = "C"; /*2 children*/
 	status = bst_remove(&tree2, value);
 	if(status!=BST_SUCCESS) printf("(Tree 2) remove - normal case: %d error", status);
-	value = "C"; /*no children, but was descendent G*/
+	value = "V"; /*2 children*/
 	status = bst_remove(&tree2, value);
 	if(status!=BST_SUCCESS) printf("(Tree 3) remove - normal case: %d error", status);
 
