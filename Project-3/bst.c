@@ -6,6 +6,7 @@
 typedef struct node {
 	char *val;
 	int dcount;
+	struct node *parent; /*new*/
 	struct node *next;
 	struct node *prev;
 } node;
@@ -39,22 +40,22 @@ int bst_insert(bst *theTree, char *value) {
 	if(newNode->val==NULL) return BST_ERR_MEM_ALLOC;
 	strcpy(newNode->val, value);
 	if(strcmp(newNode->val, value)!=0) return BST_ERR_UNKNOWN;
+	newNode->parent = NULL; /*new*/
 	newNode->next = NULL;
 	newNode->prev = NULL;
 	newNode->dcount = 0;
 
-	if(theTree->count==0) {
+	if((theTree->count==0)||(theTree->head==NULL)) {
 		theTree->head = newNode;
 		theTree->count++;
 		return BST_SUCCESS;
 	}
 
-	if(theTree->head==NULL) return BST_ERR_NULL_TREE;
-
 	theTree->curr = theTree->head;
 	while(theTree->curr!=NULL) {
 		if(strcmp(newNode->val, theTree->curr->val)>0) {
 			if(theTree->curr->next==NULL) {
+				newNode->parent = theTree->curr;/*new*/
 				theTree->curr->next = newNode;
 				theTree->count++;
 				theTree->curr = curr;
@@ -63,6 +64,7 @@ int bst_insert(bst *theTree, char *value) {
 			theTree->curr = theTree->curr->next;
 		} else {
 			if(theTree->curr->prev==NULL) {
+				newNode->parent = theTree->curr;/*new*/
 				theTree->curr->prev = newNode;
 				theTree->count++;
 				theTree->curr = curr;
@@ -178,8 +180,8 @@ node *node_replace(node *theNode) {
 /*
 ** Removes a node (theNode) from it's parent (root) node
 */
-int node_remove(node *root, node *theNode) {
-	puts("Found node. Removing.."); /* debug code */
+/*int node_remove(node *root, node *theNode) {
+	puts("Found node. Removing..");
 	if(theNode->dcount>0){
 		theNode->dcount--;
 		return BST_SUCCESS;
@@ -193,15 +195,53 @@ int node_remove(node *root, node *theNode) {
 	free(theNode->val);
 	free(theNode);
 	return BST_SUCCESS;
-}
+}*/
 /* DEBUGING */
 int bst_remove(bst *theTree, char *value) {
+	node *curr = theTree->curr;
+	int find_status = bst_find(theTree, value);
+	if(find_status!=BST_SUCCESS) return find_status;
+
+	if(theTree->curr->dcount>0){
+		theTree->curr->dcount--;
+		theTree->curr = curr;
+		return BST_SUCCESS;
+	}
+	if(theTree->head==theTree->curr) {
+		theTree->head = node_replace(theTree->curr);
+		if(theTree->head!=NULL)
+			theTree->head->parent = NULL;
+		free(theTree->curr->val);
+		free(theTree->curr);
+		theTree->curr = curr;
+		return BST_SUCCESS;
+	}
+	if(theTree->curr==theTree->curr->parent->next) {
+		theTree->curr->parent->next = node_replace(theTree->curr);
+		if(theTree->curr->parent->next!=NULL)
+			theTree->curr->parent->next->parent = theTree->curr->parent;
+		free(theTree->curr->val);
+		free(theTree->curr);
+		theTree->curr = curr;
+		return BST_SUCCESS;
+	}
+	if(theTree->curr==theTree->curr->parent->prev){
+		theTree->curr->parent->prev = node_replace(theTree->curr);
+		if(theTree->curr->parent->prev!=NULL)
+			theTree->curr->parent->prev->parent = theTree->curr->parent;
+		free(theTree->curr->val);
+		free(theTree->curr);
+		theTree->curr = curr;
+		return BST_SUCCESS;
+	}
+	return BST_ERR_UNKNOWN;
+	/*
 	node *root = theTree->curr;
 	int find_status = bst_find(theTree, value);
 	if(find_status!=BST_SUCCESS) return find_status;
 	theTree->curr = root;
 
-	puts("Checking head"); /* debug code */
+	puts("Checking head");
 	root = theTree->head;
 	if(strcmp(value, root->val)==0) {
 		if(root->dcount>0){
@@ -214,14 +254,14 @@ int bst_remove(bst *theTree, char *value) {
 		return BST_SUCCESS;
 	}
 
-	puts("Searching.."); /* debug code */
+	puts("Searching..");
 	while(root!=NULL) {
 		if(strcmp(value, root->next->val)==0) return node_remove(root, root->next);
 		if(strcmp(value, root->prev->val)==0) return node_remove(root, root->prev);
 
 		root = (strcmp(value, root->val)>0) ? root->next : root->prev;
 	}
-	return BST_ERR_UNKNOWN;
+	return BST_ERR_UNKNOWN; */
 }
 
 /*
