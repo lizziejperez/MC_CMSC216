@@ -9,10 +9,10 @@ void test2();
 void test3();
 void test4();
 void test5();
-void alphSetup(bst *tree);
+void setup(bst *tree, bst *tree2);
 
 int main() {
-	test1();
+	/*test1();*/
 	test2();
 	test3();
 	test4();
@@ -24,100 +24,65 @@ int main() {
 void test1() {
 	bst tree, tree2;
 	int status;
-
 	puts("TEST 1: create, insert, destroy");
 
-	puts("Testing create:");
-
-	puts("(Tree 1)");
 	status = bst_create(&tree);
-	if(status!=BST_SUCCESS) printf("%d error\n", status);
-	if(tree.count!=0) puts("tree count wrong value");
-	if(tree.head!=NULL) puts("tree head not null");
-	if(tree.curr!=NULL) puts("tree curr not null");
-	
-	puts("(Tree 2)");
+	if(status!=BST_SUCCESS) printf("(Tree 1) create: %d error\n", status);
 	status = bst_create(&tree2);
-	if(status!=BST_SUCCESS) printf("%d error\n", status);
-	if(tree.count!=0) puts("tree count wrong value");
-	if(tree.head!=NULL) puts("tree head not null");
-	if(tree.curr!=NULL) puts("tree curr not null");
+	if(status!=BST_SUCCESS) printf("(Tree 2) create: %d error\n", status);
 
-	puts("Testing insert (1): head case");
-	
-	puts("(Tree 1)");
 	status = bst_insert(&tree, "Howdy!");
-	if(status!=BST_SUCCESS) printf("%d error\n", status);
-	
-	puts("(Tree 2)");
+	if(status!=BST_SUCCESS) printf("(Tree 1) insert - head case: %d error\n", status);
 	status = bst_insert(&tree2, "M");
-	if(status!=BST_SUCCESS) printf("%d error\n", status);
-
-	puts("Testing insert (2): normal case");
-
-	puts("(Tree 1)");
+	if(status!=BST_SUCCESS) printf("(Tree 2) insert - head case: %d error\n", status);
 	status = bst_insert(&tree, "What's up?");
-	if(status!=BST_SUCCESS) printf("s1 %d error\n", status);
+	if(status!=BST_SUCCESS) printf("(Tree 1) insert - normal case: s1 %d error\n", status);
 	status = bst_insert(&tree, "Game on.");
-	if(status!=BST_SUCCESS) printf("s2 %d error\n", status);
+	if(status!=BST_SUCCESS) printf("(Tree 1) insert - normal case: s2 %d error\n", status);
 	status = bst_insert(&tree, "No way..");
-	if(status!=BST_SUCCESS) printf("s3 %d error\n", status);
+	if(status!=BST_SUCCESS) printf("(Tree 1) insert - normal case: s3 %d error\n", status);
 	status = bst_insert(&tree, "I don't know.");
-	if(status!=BST_SUCCESS) printf("s4 %d error\n", status);
-
-	puts("(Tree 2)");
-	status = bst_insert(&tree2, "M");
-	if(status!=BST_SUCCESS) printf("s1 %d error\n", status);
+	if(status!=BST_SUCCESS) printf("(Tree 1) insert - normal case: s4 %d error\n", status);
 	status = bst_insert(&tree2, "G");
-	if(status!=BST_SUCCESS) printf("s1 %d error\n", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) insert - normal case: s2 %d error\n", status);
 	status = bst_insert(&tree2, "S");
-	if(status!=BST_SUCCESS) printf("s1 %d error\n", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) insert - normal case: s3 %d error\n", status);
 	status = bst_insert(&tree2, "A");
-	if(status!=BST_SUCCESS) printf("s1 %d error\n", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) insert - normal case: s4 %d error\n", status);
 	status = bst_insert(&tree2, "Z");
-	if(status!=BST_SUCCESS) printf("s1 %d error\n", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) insert - normal case: s5 %d error\n", status);
 	status = bst_insert(&tree2, "D");
-	if(status!=BST_SUCCESS) printf("s1 %d error\n", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) insert - normal case: s6 %d error\n", status);
 	status = bst_insert(&tree2, "W");
-	if(status!=BST_SUCCESS) printf("s1 %d error\n", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) insert - normal case: s7 %d error\n", status);
 	status = bst_insert(&tree2, "C");
-	if(status!=BST_SUCCESS) printf("s1 %d error\n", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) insert - normal case: s8 %d error\n", status);
 	status = bst_insert(&tree2, "E");
-	if(status!=BST_SUCCESS) printf("s1 %d error\n", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) insert - normal case: s9 %d error\n", status);
 	status = bst_insert(&tree2, "V");
-	if(status!=BST_SUCCESS) printf("s1 %d error\n", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) insert - normal case: s10 %d error\n", status);
 	status = bst_insert(&tree2, "X");
-	if(status!=BST_SUCCESS) printf("s1 %d error\n", status);
-
-	puts("Testing insert (3): duplicate case");
-
-	puts("(Tree 1)");
+	if(status!=BST_SUCCESS) printf("(Tree 2) insert - normal case: s11 %d error\n", status);
+	
 	status = bst_insert(&tree, "Howdy!");
-	if(status!=BST_SUCCESS) printf("%d error", status);
-
-	puts("(Tree 2)");
+	if(status!=BST_SUCCESS) printf("(Tree 1) insert - duplicate case: %d error", status);
 	status = bst_insert(&tree2, "M");
-	if(status!=BST_SUCCESS) printf("%d error", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) insert - duplicate case: s1 %d error", status);
 	status = bst_insert(&tree2, "M");
-	if(status!=BST_SUCCESS) printf("%d error", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) insert - duplicate case: s2 %d error", status);
 	status = bst_insert(&tree2, "M");
-	if(status!=BST_SUCCESS) printf("%d error", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) insert - duplicate case: s3 %d error", status);
 	status = bst_insert(&tree2, "A");
-	if(status!=BST_SUCCESS) printf("%d error", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) insert - duplicate case: s4 %d error", status);
 	status = bst_insert(&tree2, "D");
-	if(status!=BST_SUCCESS) printf("%d error", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) insert - duplicate case: s5 %d error", status);
 	status = bst_insert(&tree2, "D");
-	if(status!=BST_SUCCESS) printf("%d error", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) insert - duplicate case: s6 %d error", status);
 
-	puts("Testing destroy:");
-
-	puts("(Tree 1)");
 	status = bst_destroy(&tree);
-	if(status!=BST_SUCCESS) printf("%d error", status);
-
-	puts("(Tree 2)");
+	if(status!=BST_SUCCESS) printf("(Tree 1) destroy: %d error", status);
 	status = bst_destroy(&tree2);
-	if(status!=BST_SUCCESS) printf("%d error", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) destroy: %d error", status);
 
 	puts("--------------------");
 }
@@ -138,26 +103,32 @@ void setup(bst *tree, bst *tree2) {
 	bst_insert(tree, "No way..");
 	bst_insert(tree, "I don't know.");
 	bst_insert(tree, "Howdy!");
-	/*       M(x4)
-	*    ___/ \______
-	*   G__          S
-	*  /   \        / \
-	* A(x2) D(x3)  W   Z
-	*      / \    / \
-	*     C   E  V   X
+	/*       ____M____
+	*       /         \
+	*     _E_         _V_
+	*    /   \       /   \
+	*   C     I     Q     X
+	*  / \   / \   / \   / \
+	* A   D G   K O   S W   Z
 	*/
 	bst_create(tree2);
 	bst_insert(tree2, "M");
-	bst_insert(tree2, "G");
-	bst_insert(tree2, "S");
-	bst_insert(tree2, "A");
-	bst_insert(tree2, "Z");
-	bst_insert(tree2, "D");
-	bst_insert(tree2, "W");
-	bst_insert(tree2, "C");
 	bst_insert(tree2, "E");
+	bst_insert(tree2, "C");
+	bst_insert(tree2, "A");
+	bst_insert(tree2, "D");
+	bst_insert(tree2, "I");
+	bst_insert(tree2, "G");
+	bst_insert(tree2, "K");
+
 	bst_insert(tree2, "V");
 	bst_insert(tree2, "X");
+	bst_insert(tree2, "Z");
+	bst_insert(tree2, "W");
+	bst_insert(tree2, "Q");
+	bst_insert(tree2, "S");
+	bst_insert(tree2, "O");
+	
 	bst_insert(tree2, "M");
 	bst_insert(tree2, "M");
 	bst_insert(tree2, "M");
@@ -169,50 +140,33 @@ void setup(bst *tree, bst *tree2) {
 void test2() {
 	bst tree, tree2;
 	int status;
-	char *dst;
-
+	char *dst = malloc(sizeof(char)*MAX);
 	puts("TEST 2: first, last");
 	setup(&tree, &tree2);
-	puts("Testing first:");
 
-	puts("(Tree 1)");
-	dst = malloc(sizeof(char)*MAX);
 	status = bst_first(&tree, dst);
 	if(status!=BST_SUCCESS)
-		printf("%d error\n", status);
+		printf("(Tree 1) first: %d error\n", status);
 	else
-		printf("result: %s\nexpected: Game on.\n", dst);
-	free(dst);
-
-	puts("(Tree 2)");
-	dst = malloc(sizeof(char)*2);
+		printf("(Tree 1) first: result[%s] expected[Game on.]\n", dst);
 	status = bst_first(&tree2, dst);
 	if(status!=BST_SUCCESS)
-		printf("%d error\n", status);
+		printf("(Tree 2) first: %d error\n", status);
 	else
-		printf("result: %s\nexpected: A\n", dst);
-	free(dst);
+		printf("(Tree 2) first: result[%s] expected[A]\n", dst);
 
-	puts("Testing last:");
-
-	puts("(Tree 1)");
-	dst = malloc(sizeof(char)*MAX);
 	status = bst_last(&tree, dst);
 	if(status!=BST_SUCCESS)
-		printf("%d error\n", status);
+		printf("(Tree 1) last: %d error\n", status);
 	else
-		printf("result: %s\nexpected: What's up?\n", dst);
-	free(dst);
-
-	puts("(Tree 2)");
-	dst = malloc(sizeof(char)*2);
+		printf("(Tree 1) last: result[%s] expected[What's up?]\n", dst);
 	status = bst_last(&tree2, dst);
 	if(status!=BST_SUCCESS)
-		printf("%d error\n", status);
+		printf("(Tree 2) last: %d error\n", status);
 	else
-		printf("result: %s\nexpected: Z\n", dst);
-	free(dst);
+		printf("(Tree 2) last: result[%s] expected[Z]\n", dst);
 
+	free(dst);
 	bst_destroy(&tree);
 	bst_destroy(&tree2);
 	puts("--------------------");
@@ -222,35 +176,27 @@ void test3() {
 	bst tree, tree2;
 	int status;
 	char *value;
-
 	puts("TEST 3: find");
 	setup(&tree, &tree2);
-	puts("Testing find (1): DNE case");
 
-	puts("(Tree 1)");
 	value = "N/A";
 	status = bst_find(&tree, value);
-	if(status!=BST_ERR_NOT_FOUND) printf("%d error\n", status);
-
-	puts("(Tree 2)");
-	value = "N/A";
+	if(status!=BST_ERR_NOT_FOUND) printf("(Tree 1) find - DNE case: %d error\n", status);
 	status = bst_find(&tree2, value);
-	if(status!=BST_ERR_NOT_FOUND) printf("%d error\n", status);
+	if(status!=BST_ERR_NOT_FOUND) printf("(Tree 2) find - DNE case: %d error\n", status);
 
-	puts("Testing find (2): normal case");
-
-	puts("(Tree 1)");
 	value = "What's up?";
 	status = bst_find(&tree, value);
-	if(status!=BST_SUCCESS) printf("%d error\n", status);
+	if(status!=BST_SUCCESS) printf("(Tree 1) find - normal case: %d error\n", status);
 	value = "Game on.";
 	status = bst_find(&tree, value);
-	if(status!=BST_SUCCESS) printf("%d error\n", status);
-
-	puts("(Tree 2)");
+	if(status!=BST_SUCCESS) printf("(Tree 1) find - normal case: %d error\n", status);
 	value = "D";
-	status = bst_find(&tree, value);
-	if(status!=BST_SUCCESS) printf("%d error\n", status);
+	status = bst_find(&tree2, value);
+	if(status!=BST_SUCCESS) printf("(Tree 2) find - normal case: %d error\n", status);
+	value = "Z";
+	status = bst_find(&tree2, value);
+	if(status!=BST_SUCCESS) printf("(Tree 2) find - normal case: %d error\n", status);
 
 	bst_destroy(&tree);
 	bst_destroy(&tree2);
@@ -260,90 +206,55 @@ void test3() {
 void test4() {
 	bst tree, tree2;
 	int status;
-	char *dst, *value;
-
+	char *dst, *value, *value2;
 	puts("TEST 4: next, previous");
 	setup(&tree, &tree2);
-	puts("Testing next (1): no curr case");
-
-	puts("(Tree 1)");
 	dst = malloc(sizeof(char)*MAX);
+
 	status = bst_next(&tree, dst);
-	if(status!=BST_ERR_NULL_POINTER) printf("%d error\n", status);
-	if(status==BST_SUCCESS) printf("result: %s\nnot expected result\n", dst);
-	free(dst);
-
-	puts("(Tree 2)");
-	dst = malloc(sizeof(char)*2);
+	if(status!=BST_ERR_NULL_POINTER) printf("(Tree 1) next - no curr: %d error\n", status);
+	if(status==BST_SUCCESS) printf("result[%s]\n", dst);
 	status = bst_next(&tree2, dst);
-	if(status!=BST_ERR_NULL_POINTER) printf("%d error\n", status);
-	if(status==BST_SUCCESS) printf("result: %s\nnot expected result\n", dst);
-	free(dst);
+	if(status!=BST_ERR_NULL_POINTER) printf("(Tree 2) next - no curr: %d error\n", status);
+	if(status==BST_SUCCESS) printf("result[%s]\n", dst);
 
-	puts("Testing previous (1): no curr case");
-
-	puts("(Tree 1)");
-	dst = malloc(sizeof(char)*MAX);
 	status = bst_previous(&tree, dst);
-	if(status!=BST_ERR_NULL_POINTER) printf("%d error\n", status);
-	if(status==BST_SUCCESS) printf("result: %s\nnot expected result\n", dst);
-	free(dst);
+	if(status!=BST_ERR_NULL_POINTER) printf("(Tree 1) previous - no curr: %d error\n", status);
+	if(status==BST_SUCCESS) printf("result[%s]\n", dst);
+	status = bst_previous(&tree2, dst);
+	if(status!=BST_ERR_NULL_POINTER) printf("(Tree 2) previous - no curr: %d error\n", status);
+	if(status==BST_SUCCESS) printf("result[%s]\n", dst);
 
-	puts("(Tree 2)");
-	dst = malloc(sizeof(char)*2);
-	status = bst_next(&tree2, dst);
-	if(status!=BST_ERR_NULL_POINTER) printf("%d error\n", status);
-	if(status==BST_SUCCESS) printf("result: %s\nnot expected result\n", dst);
-	free(dst);
-
-	puts("Testing next (2): normal case");
-
-	puts("(Tree 1)");
 	value = "Howdy!";
+	value2 = "I";
+
 	bst_find(&tree, value);
-	dst = malloc(sizeof(char)*MAX);
 	status = bst_next(&tree, dst);
 	if(status!=BST_SUCCESS)
-		printf("%d error\n", status);
+		printf("(Tree 1) next - normal case: %d error\n", status);
 	else
-		printf("result: %s\nexpected: What's up?\n", dst);
-	free(dst);
-
-	puts("(Tree 2)");
-	value = "G";
-	bst_find(&tree2, value);
-	dst = malloc(sizeof(char)*2);
+		printf("(Tree 1) next - normal case: result[%s] expected[What's up?]\n", dst);
+	bst_find(&tree2, value2);
 	status = bst_next(&tree2, dst);
 	if(status!=BST_SUCCESS)
-		printf("%d error\n", status);
+		printf("(Tree 2) next - normal case: %d error\n", status);
 	else
-		printf("result: %s\nexpected: D\n", dst);
-	free(dst);
+		printf("(Tree 2) next - normal case: result[%s] expected[K]\n", dst);
 
-	puts("Testing previous (2): normal case");
-
-	puts("(Tree 1)");
-	value = "Howdy!";
 	bst_find(&tree, value);
-	dst = malloc(sizeof(char)*MAX);
 	status = bst_previous(&tree, dst);
 	if(status!=BST_SUCCESS)
-		printf("%d error\n", status);
+		printf("(Tree 1) previous - normal case: %d error\n", status);
 	else
-		printf("result: %s\nexpected: Game on.\n", dst);
-	free(dst);
-
-	puts("(Tree 2)");
-	value = "G";
-	bst_find(&tree2, value);
-	dst = malloc(sizeof(char)*2);
+		printf("(Tree 1) previous - normal case: result[%s] expected[Game on.]\n", dst);
+	bst_find(&tree2, value2);
 	status = bst_previous(&tree2, dst);
 	if(status!=BST_SUCCESS)
-		printf("%d error\n", status);
+		printf("(Tree 2) previous - normal case: %d error\n", status);
 	else
-		printf("result: %s\nexpected: A\n", dst);
-	free(dst);
+		printf("(Tree 2) previous - normal case: result[%s] expected[G]\n", dst);
 
+	free(dst);
 	bst_destroy(&tree);
 	bst_destroy(&tree2);
 	puts("--------------------");
@@ -353,66 +264,52 @@ void test5() {
 	bst tree, tree2;
 	int status;
 	char *value;
-
 	puts("TEST 5: remove");
 	setup(&tree, &tree2);
-	puts("Testing remove (1): normal case");
 
-	puts("(Tree 1)");
 	value = "Game on."; /*no children*/
 	status = bst_remove(&tree, value);
-	if(status!=BST_SUCCESS) printf("%d error", status);
+	if(status!=BST_SUCCESS) printf("(Tree 1) remove - normal case: %d error", status);
 	value = "No way.."; /*one child*/
 	status = bst_remove(&tree, value);
-	if(status!=BST_SUCCESS) printf("%d error", status);
-
-	puts("(Tree 2)");
+	if(status!=BST_SUCCESS) printf("(Tree 1) remove - normal case: %d error", status);
 	value = "G"; /*2 children*/
 	status = bst_remove(&tree2, value);
-	if(status!=BST_SUCCESS) printf("%d error", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) remove - normal case: %d error", status);
 	value = "C"; /*no children, but was descendent G*/
 	status = bst_remove(&tree2, value);
-	if(status!=BST_SUCCESS) printf("%d error", status);
+	if(status!=BST_SUCCESS) printf("(Tree 3) remove - normal case: %d error", status);
 
 	bst_destroy(&tree);
 	bst_destroy(&tree2);
 	setup(&tree, &tree2);
-	puts("Testing remove (2): DNE case");
 
-	puts("(Tree 1)");
 	value = "Nothing";
 	status = bst_remove(&tree, value);
-	if(status!=BST_ERR_NOT_FOUND) printf("%d error", status);
-	
-	puts("(Tree 2)");
-	value = "Nothing";
+	if(status!=BST_ERR_NOT_FOUND) printf("(Tree 1) remove - DNE case: %d error", status);
 	status = bst_remove(&tree2, value);
-	if(status!=BST_ERR_NOT_FOUND) printf("%d error", status);
+	if(status!=BST_ERR_NOT_FOUND) printf("(Tree 2) remove - DNE case: %d error", status);
 
 	bst_destroy(&tree);
 	bst_destroy(&tree2);
 	setup(&tree, &tree2);
-	puts("Testing remove (3): dupl case");
 
-	puts("(Tree 1)");
 	value = "Howdy!";
 	status = bst_remove(&tree, value);
-	if(status!=BST_SUCCESS) printf("%d error", status);
+	if(status!=BST_SUCCESS) printf("(Tree 1) remove - dupl case: %d error", status);
 	status = bst_remove(&tree, value);
-	if(status!=BST_SUCCESS) printf("%d error", status);
+	if(status!=BST_SUCCESS) printf("(Tree 1) remove - dupl case: %d error", status);
 	status = bst_remove(&tree, value);
-	if(status==BST_SUCCESS) puts("Unexpected success");
-
-	puts("(Tree 2)");
+	if(status==BST_SUCCESS) puts("(Tree 1) remove - dupl case: Unexpected success");
 	value = "D";
 	status = bst_remove(&tree2, value);
-	if(status!=BST_SUCCESS) printf("%d error", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) remove - dupl case: %d error", status);
 	status = bst_remove(&tree2, value);
-	if(status!=BST_SUCCESS) printf("%d error", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) remove - dupl case: %d error", status);
 	status = bst_remove(&tree2, value);
-	if(status!=BST_SUCCESS) printf("%d error", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) remove - dupl case: %d error", status);
 	status = bst_remove(&tree2, value);
-	if(status==BST_SUCCESS) puts("Unexpected success");
+	if(status==BST_SUCCESS) puts("(Tree 2) remove - dupl case: Unexpected success");
 
 	bst_destroy(&tree);
 	bst_destroy(&tree2);
