@@ -9,19 +9,94 @@ void test2();
 void test3();
 void test4();
 void test5();
-void test6();
 void setup(bst *tree, bst *tree2);
 void printInorder(bst *tree);
 
 int main() {
+	bst tree, tree2;
+	setup(&tree, &tree2);
+	printInorder(&tree);
+	printInorder(&tree2);
+
 	test1();
 	test2();
 	test3();
 	test4();
 	test5();
-	test6();
 
 	return 0;
+}
+
+void setup(bst *tree, bst *tree2) {
+	/*       "Howdy!"(x2)
+	*        /     \
+	* "Game on." "What's up?"
+	*             /
+	*         "No way.."
+	*           /
+	* "I don't know."
+	*/
+	bst_create(tree);
+	bst_insert(tree, "Howdy!");
+	bst_insert(tree, "What's up?");
+	bst_insert(tree, "Game on.");
+	bst_insert(tree, "No way..");
+	bst_insert(tree, "I don't know.");
+	bst_insert(tree, "Howdy!");
+
+	/*          ___M(x4)___
+	*          /           \
+	*      ___E___         _V_
+	*     /        \       /   \
+	*   _C_         I     Q     X
+	*  /   \       / \   / \   / \
+	* A(x2) D(x3) G   K O   S W   Z
+	*/
+	bst_create(tree2);
+	bst_insert(tree2, "M");
+	bst_insert(tree2, "E");
+	bst_insert(tree2, "C");
+	bst_insert(tree2, "A");
+	bst_insert(tree2, "D");
+	bst_insert(tree2, "I");
+	bst_insert(tree2, "G");
+	bst_insert(tree2, "K");
+	bst_insert(tree2, "V");
+	bst_insert(tree2, "X");
+	bst_insert(tree2, "Z");
+	bst_insert(tree2, "W");
+	bst_insert(tree2, "Q");
+	bst_insert(tree2, "S");
+	bst_insert(tree2, "O");
+	bst_insert(tree2, "M");
+	bst_insert(tree2, "M");
+	bst_insert(tree2, "M");
+	bst_insert(tree2, "A");
+	bst_insert(tree2, "D");
+	bst_insert(tree2, "D");
+}
+
+void printInorder(bst *tree) {
+	char *dst;
+	dst = malloc(sizeof(char)*MAX);
+	bst_first(tree, dst);
+	printf("%s", dst);
+	int count = 1;
+	while(count<tree->count) {
+		bst_next(tree, dst);
+		printf("%s", dst);
+		count++;
+	}
+	printf("\n");
+	bst_last(tree, dst);
+	printf("%s", dst);
+	count = 1;
+	while(count<tree->count) {
+		bst_previous(tree, dst);
+		printf("%s", dst);
+		count++;
+	}
+	printf("\n");
 }
 
 void test1() {
@@ -50,56 +125,6 @@ void test1() {
 	if(status!=BST_SUCCESS) printf("(Tree 1) destroy: %d error", status);
 
 	puts("--------------------");
-}
-
-void setup(bst *tree, bst *tree2) {
-	/*       "Howdy!"(x2)
-	*        /     \
-	* "Game on." "What's up?"
-	*             /
-	*         "No way.."
-	*           /
-	* "I don't know."
-	*/
-	bst_create(tree);
-	bst_insert(tree, "Howdy!");
-	bst_insert(tree, "What's up?");
-	bst_insert(tree, "Game on.");
-	bst_insert(tree, "No way..");
-	bst_insert(tree, "I don't know.");
-	bst_insert(tree, "Howdy!");
-	/*       ____M____
-	*       /         \
-	*     _E_         _V_
-	*    /   \       /   \
-	*   C     I     Q     X
-	*  / \   / \   / \   / \
-	* A   D G   K O   S W   Z
-	*/
-	bst_create(tree2);
-	bst_insert(tree2, "M");
-	bst_insert(tree2, "E");
-	bst_insert(tree2, "C");
-	bst_insert(tree2, "A");
-	bst_insert(tree2, "D");
-	bst_insert(tree2, "I");
-	bst_insert(tree2, "G");
-	bst_insert(tree2, "K");
-
-	bst_insert(tree2, "V");
-	bst_insert(tree2, "X");
-	bst_insert(tree2, "Z");
-	bst_insert(tree2, "W");
-	bst_insert(tree2, "Q");
-	bst_insert(tree2, "S");
-	bst_insert(tree2, "O");
-	
-	bst_insert(tree2, "M");
-	bst_insert(tree2, "M");
-	bst_insert(tree2, "M");
-	bst_insert(tree2, "A");
-	bst_insert(tree2, "D");
-	bst_insert(tree2, "D");
 }
 
 void test2() {
@@ -198,7 +223,12 @@ void test4() {
 	if(status!=BST_SUCCESS)
 		printf("(Tree 1) next - normal case: %d error\n", status);
 	else
-		printf("(Tree 1) next - normal case: result[%s] expected[What's up?]\n", dst);
+		printf("(Tree 1) next - normal case: result[%s] expected[Howdy!]\n", dst);
+	status = bst_next(&tree, dst);
+	if(status!=BST_SUCCESS)
+		printf("(Tree 1) next - normal case: %d error\n", status);
+	else
+		printf("(Tree 1) next - normal case: result[%s] expected[I don't know.]\n", dst);
 	bst_find(&tree2, value2);
 	status = bst_next(&tree2, dst);
 	if(status!=BST_SUCCESS)
@@ -247,24 +277,18 @@ void test5() {
 	if(status!=BST_SUCCESS) printf("(Tree 3) remove - normal case: %d error", status);
 	printInorder(&tree2);
 
-	bst_destroy(&tree);
-	bst_destroy(&tree2);
-	setup(&tree, &tree2);
-
 	value = "Nothing";
 	status = bst_remove(&tree, value);
 	if(status!=BST_ERR_NOT_FOUND) printf("(Tree 1) remove - DNE case: %d error", status);
+	printInorder(&tree);
 	status = bst_remove(&tree2, value);
 	if(status!=BST_ERR_NOT_FOUND) printf("(Tree 2) remove - DNE case: %d error", status);
-	printInorder(&tree);
-
-	bst_destroy(&tree);
-	bst_destroy(&tree2);
-	setup(&tree, &tree2);
+	printInorder(&tree2);
 
 	value = "Howdy!";
 	status = bst_remove(&tree, value);
 	if(status!=BST_SUCCESS) printf("(Tree 1) remove - dupl case: %d error", status);
+	printInorder(&tree);
 	status = bst_remove(&tree, value);
 	if(status!=BST_SUCCESS) printf("(Tree 1) remove - dupl case: %d error", status);
 	status = bst_remove(&tree, value);
@@ -273,6 +297,7 @@ void test5() {
 	value = "D";
 	status = bst_remove(&tree2, value);
 	if(status!=BST_SUCCESS) printf("(Tree 2) remove - dupl case: %d error", status);
+	printInorder(&tree2);
 	status = bst_remove(&tree2, value);
 	if(status!=BST_SUCCESS) printf("(Tree 2) remove - dupl case: %d error", status);
 	status = bst_remove(&tree2, value);
@@ -284,64 +309,4 @@ void test5() {
 	bst_destroy(&tree);
 	bst_destroy(&tree2);
 	puts("--------------------");
-}
-
-void test6() {
-	bst tree, tree2;
-	int status;
-	char *dst, *value;
-	dst = malloc(sizeof(char)*MAX);
-	puts("TEST 6: next, remove");
-	setup(&tree, &tree2);
-
-	value = "A";
-	bst_find(&tree2, value);
-	status = bst_next(&tree2, dst);
-	if(status!=BST_SUCCESS)
-		printf("(Tree 2) next - normal case: %d error\n", status);
-	else
-		printf("(Tree 2) next - normal case: result[%s] expected[C]\n", dst);
-	status = bst_next(&tree2, dst);
-	if(status!=BST_SUCCESS)
-		printf("(Tree 2) next - normal case: %d error\n", status);
-	else
-		printf("(Tree 2) next - normal case: result[%s] expected[D]\n", dst);
-	status = bst_next(&tree2, dst);
-	if(status!=BST_SUCCESS)
-		printf("(Tree 2) next - normal case: %d error\n", status);
-	else
-		printf("(Tree 2) next - normal case: result[%s] expected[E]\n", dst);
-	
-	value = "I";
-	bst_remove(&tree2, value);
-	status = bst_next(&tree2, dst);
-	if(status!=BST_SUCCESS)
-		printf("(Tree 2) next - removed case: %d error\n", status);
-	else
-		printf("(Tree 2) next - removed case: result[%s] expected[G]\n", dst);
-	status = bst_next(&tree2, dst);
-	if(status!=BST_SUCCESS)
-		printf("(Tree 2) next - removed case: %d error\n", status);
-	else
-		printf("(Tree 2) next - removed case: result[%s] expected[K]\n", dst);
-
-	printInorder(&tree2);
-	bst_destroy(&tree);
-	bst_destroy(&tree2);
-	puts("--------------------");
-}
-
-void printInorder(bst *tree) {
-	char *dst;
-	dst = malloc(sizeof(char)*MAX);
-	bst_first(tree, dst);
-	printf("%s", dst);
-
-	int count = 1;
-	while(count<tree->count) {
-		bst_next(tree, dst);
-		printf("%s", dst);
-		count++;
-	}
-	printf("\n");
 }
