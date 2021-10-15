@@ -127,9 +127,7 @@ int bst_next(bst *theTree, char *dst) {
 	
 	node *n = theTree->curr->next;
 	if(n!=NULL){
-		while(n->prev!=NULL) {
-			n = n->prev;
-		}
+		while(n->prev!=NULL) n = n->prev;
 		strcpy(dst, n->val);
 		theTree->curr = n;
 		idx = 0;
@@ -162,9 +160,7 @@ int bst_previous(bst *theTree, char *dst) {
 
 	node *n = theTree->curr->prev;
 	if(n!=NULL){
-		while(n->next!=NULL) {
-			n = n->next;
-		}
+		while(n->next!=NULL) n = n->next;
 		strcpy(dst, n->val);
 		theTree->curr = n;
 		idx = theTree->curr->dcount;

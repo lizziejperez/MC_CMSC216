@@ -261,45 +261,60 @@ void test5() {
 	char *value;
 	puts("TEST 5: remove");
 	setup(&tree, &tree2);
+	printf("(Tree 1):\n");
+	printInorder(&tree);
+	printf("(Tree 2):\n");
+	printInorder(&tree2);
 
 	value = "Game on."; /*no children*/
+	printf("(Tree 1) removing[%s]\n", value);
 	status = bst_remove(&tree, value);
 	if(status!=BST_SUCCESS) printf("(Tree 1) remove - normal case: %d error", status);
 	value = "No way.."; /*one child*/
+	printf("(Tree 1) removing[%s]\n", value);
 	status = bst_remove(&tree, value);
 	if(status!=BST_SUCCESS) printf("(Tree 1) remove - normal case: %d error", status);
 	printInorder(&tree);
 	value = "C"; /*2 children*/
+	printf("(Tree 2) removing[%s]\n", value);
 	status = bst_remove(&tree2, value);
 	if(status!=BST_SUCCESS) printf("(Tree 2) remove - normal case: %d error", status);
 	value = "V"; /*2 children*/
+	printf("(Tree 2) removing[%s]\n", value);
 	status = bst_remove(&tree2, value);
-	if(status!=BST_SUCCESS) printf("(Tree 3) remove - normal case: %d error", status);
+	if(status!=BST_SUCCESS) printf("(Tree 2) remove - normal case: %d error", status);
 	printInorder(&tree2);
 
 	value = "Nothing";
+	printf("(Tree 1) removing[%s]\n", value);
 	status = bst_remove(&tree, value);
 	if(status!=BST_ERR_NOT_FOUND) printf("(Tree 1) remove - DNE case: %d error", status);
 	printInorder(&tree);
+	printf("(Tree 2) removing[%s]\n", value);
 	status = bst_remove(&tree2, value);
 	if(status!=BST_ERR_NOT_FOUND) printf("(Tree 2) remove - DNE case: %d error", status);
 	printInorder(&tree2);
 
 	value = "Howdy!";
+	printf("(Tree 1) removing[%s]\n", value);
 	status = bst_remove(&tree, value);
 	if(status!=BST_SUCCESS) printf("(Tree 1) remove - dupl case: %d error", status);
 	printInorder(&tree);
+	printf("(Tree 1) removing[%s]\n", value);
 	status = bst_remove(&tree, value);
 	if(status!=BST_SUCCESS) printf("(Tree 1) remove - dupl case: %d error", status);
 	status = bst_remove(&tree, value);
 	if(status==BST_SUCCESS) puts("(Tree 1) remove - dupl case: Unexpected success");
 	printInorder(&tree);
 	value = "D";
+	printf("(Tree 2) removing[%s]\n", value);
 	status = bst_remove(&tree2, value);
 	if(status!=BST_SUCCESS) printf("(Tree 2) remove - dupl case: %d error", status);
 	printInorder(&tree2);
+	printf("(Tree 2) removing[%s]\n", value);
 	status = bst_remove(&tree2, value);
 	if(status!=BST_SUCCESS) printf("(Tree 2) remove - dupl case: %d error", status);
+	printf("(Tree 2) removing[%s]\n", value);
 	status = bst_remove(&tree2, value);
 	if(status!=BST_SUCCESS) printf("(Tree 2) remove - dupl case: %d error", status);
 	status = bst_remove(&tree2, value);
