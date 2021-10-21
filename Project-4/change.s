@@ -1,6 +1,8 @@
 main
+		;		setup
 		str		r11, [r13, #-4]!
-		add		r11, r13, #0
+		sub		r13, r13, #-20
+		
 		mov		r3, #5
 		mov		r4, #43
 		mov		r5, #0
@@ -9,23 +11,27 @@ main
 		str		r5, [r13, #-12]
 		str		r5, [r13, #-16]
 		str		r5, [r13, #-20]
-		;		DOLLARS
+		;		dollars
 		str		r3, [r13, #-4]
 		mov		r3, #0
-		;		QUARTERS
+		;		quarters
 		mov		r5, #25
 		bl		DIVIDE
 		str		r6, [r13, #-8]
-		;		DIMES
+		;		dimes
 		mov		r5, #10
 		bl		DIVIDE
 		str		r6, [r13, #-12]
-		;		NICKELS
+		;		nickels
 		mov		r5, #5
 		bl		DIVIDE
 		str		r6, [r13, #-16]
-		;		PENNIES
+		;		pennies
 		str		r4, [r13, #-20]
+		
+		;		clean up
+		add		r13, r13, #20
+		ldr		r11, [r13, #4]
 		END
 		
 DIVIDE
