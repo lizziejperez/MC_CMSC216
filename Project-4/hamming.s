@@ -25,6 +25,7 @@ forBit
 		cmp		r6, r1
 		ble		forPos
 		;(parity & 1)
+		;lsl
 
 forPos
 ifParity
