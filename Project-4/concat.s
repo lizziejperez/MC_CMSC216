@@ -22,7 +22,9 @@ main
 		end
 
 _allocate
-		
+		sub		r13, r13, r0
 
 hello	DCD		104, 101, 108, 108, 111, 0
+;hello DCD		0x 00 6F 6C 6C 65 68
 goodbye	DCD		103, 111, 111, 100, 98, 121, 101, 0
+;goodbye DCD		0x 00 65 79 62 64 6F 6F 67
