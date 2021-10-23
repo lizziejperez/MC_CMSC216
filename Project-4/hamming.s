@@ -1,9 +1,4 @@
 main
-			;		setup
-			;mov		r11, #0x0A000000
-			;mov		r13, r11
-			;sub		r13, r13, #-20
-			
 			;		input(r3), output (r0), position(r2)
 			mov		r3, #138
 			mov		r2, #0
@@ -18,9 +13,6 @@ main
 			cmp		r2, #0
 			blne		ifPosition ; position != 0
 			
-			;		clean up
-			;add		r13, r13, #20
-			;ldr		r11, [r13, #4]
 			END
 			
 forBit0
