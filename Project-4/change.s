@@ -1,3 +1,7 @@
+; Name: Elizabeth Perez
+; Student ID: eperez57
+; M-number: M20966722
+
 main
 		;		setup FP(r11) and SP(r13)
 		str		r11, [r13, #-4]!

@@ -1,3 +1,7 @@
+; Name: Elizabeth Perez
+; Student ID: eperez57
+; M-number: M20966722
+
 main
 		;		setup vars: input(r3), output (r0), position(r2), WORD_SIZE(r1)
 		mov		r3, #138
