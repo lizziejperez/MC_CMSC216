@@ -43,6 +43,8 @@ main
 		;		restoring LR from FP-8
 		ldr		LR, [r11, #-8]
 		add		r13, r13, #8
+		;		restore FP and SP
+		ldr		r11, [r13, #4]!
 		end
 		
 _allocate
