@@ -2,6 +2,8 @@
 ; Student ID: eperez57
 ; M-number: M20966722
 
+; only use r0-r3, if others need use store/restore them using the stack
+
 post2infix
 		;		setup FP(r11) and SP(r13)
 		str		r11, [r13, #-4]!
