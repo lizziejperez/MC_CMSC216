@@ -1,7 +1,7 @@
 ; Name: Elizabeth Perez
 ; Student ID: eperez57
 ; M-number: M20966722
-
+		
 main
 		; setup FP(r11) and SP(r13)
 		str		r11, [r13, #-4]!
@@ -9,14 +9,26 @@ main
 		; storing LR at FP-8
 		sub		r13, r13, #-8
 		str		LR, [r11, #-8]
+
 		; setup vars: s1(r3), len1(r2), s2(r1), len2(r0)
 		;mov		r3, #hello
 		;mov		r2, #5
 		;mov		r1, #goodbye
 		;mov		r0, #7
-		; storing len2 at FP-12
+
+		; storing len1 at FP-12
 		sub		r13, r13, #-4
-		str		r0, [r11, #-12]
+		str		r2, [r11, #-12]
+		; storing len2 at FP-16
+		sub		r13, r13, #-4
+		str		r0, [r11, #-16]
+		; storing s1 at FP-20
+		sub		r13, r13, #-4
+		str		r3, [r11, #-20]
+		; storing s2 at FP-24
+		sub		r13, r13, #-4
+		str		r1, [r11, #-24]
+
 		; storing (len1 + len2 + 1) in r0
 		add		r0, r0, r2
 		add		r0, r0, #1
@@ -24,9 +36,20 @@ main
 		bl		_allocate
 		; stores value in r0 (the return value of _allocate) in result(r4)
 		mov		r4, r0
-		; restoring len2(r0) from FP-12
-		ldr		r0, [r11, #-12]
+
+		; restoring len1 from FP-12
+		ldr		r2, [r11, #-12]
 		add		r13, r13, #4
+		; restoring len2 from FP-16
+		ldr		r0, [r11, #-16]
+		add		r13, r13, #4
+		; restoring s1 from FP-20
+		ldr		r3, [r11, #-20]
+		add		r13, r13, #4
+		; restoring s2 from FP-24
+		ldr		r1, [r11, #-24]
+		add		r13, r13, #4
+
 		; setup ix4(r5)
 		mov		r5, #0
 		; branch links to whileS1 if the value in r6 (the first char/byte in s1) != 0
@@ -40,6 +63,7 @@ main
 		blne		whileS2
 		; storing result in r0
 		mov		r0, r4
+
 		; restoring LR from FP-8
 		ldr		LR, [r11, #-8]
 		add		r13, r13, #8
@@ -48,24 +72,26 @@ main
 		end
 		
 _allocate
-		; setup free_mem_ptr(r6) and MAX_MEM_ADDR(r7)
-		adr		r8, ptr
-		ldr		r6, [r8]
-		;mov		r6, #0x800
-		mov		r7, #0x1800
-		; branches to ifSpace if the value in r8 (free_mem_ptr+r0) <= MAX_MEM_ADDR
-		add		r8, r6, r0
-		cmp		r8, r7
+		; setup free_mem_ptr(r2) and MAX_MEM_ADDR(r3)
+		adr		r1, ptr
+		ldr		r2, [r1]
+		mov		r3, #0x1800
+		; branches to ifSpace if the value in r1 (free_mem_ptr+r0) <= MAX_MEM_ADDR
+		add		r1, r2, r0
+		cmp		r1, r3
 		ble		ifSpace
 		; sets r0 to 0 and exits branch link
 		mov		r0, #0
 		mov		PC, LR
 ifSpace
-		; sets r0 to free_mem_ptr and exits branch link and updates free_mem_ptr
-		mov		r0, r6
-		str		r8, [r6]
+		; sets return(r0) to free_mem_ptr
+		mov		r0, r2
+		; updates the pointer
+		adr		r2, ptr
+		str		r1, [r2]
+		; exits branch link
 		mov		PC, LR
-
+		
 whileS1
 		; stores the value in r6 (a char in s1) at result(r4)+r5
 		str		r6, [r4, r5]
@@ -91,6 +117,6 @@ whileS2
 		; exits branch link
 		mov		PC, LR
 
-ptr	DCD		0x800
+ptr		DCD		0x800
 ;hello	DCD		104, 101, 108, 108, 111, 0
 ;goodbye	DCD		103, 111, 111, 100, 98, 121, 101, 0
