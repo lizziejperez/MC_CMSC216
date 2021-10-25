@@ -49,7 +49,9 @@ main
 		
 _allocate
 		; setup free_mem_ptr(r6) and MAX_MEM_ADDR(r7)
-		mov		r6, #0x800
+		adr		r8, ptr
+		ldr		r6, [r8]
+		;mov		r6, #0x800
 		mov		r7, #0x1800
 		; branches to ifSpace if the value in r8 (free_mem_ptr+r0) <= MAX_MEM_ADDR
 		add		r8, r6, r0
@@ -59,8 +61,9 @@ _allocate
 		mov		r0, #0
 		mov		PC, LR
 ifSpace
-		; sets r0 to free_mem_ptr and exits branch link
+		; sets r0 to free_mem_ptr and exits branch link and updates free_mem_ptr
 		mov		r0, r6
+		str		r8, [r6]
 		mov		PC, LR
 
 whileS1
@@ -88,5 +91,6 @@ whileS2
 		; exits branch link
 		mov		PC, LR
 
+ptr	DCD		0x800
 ;hello	DCD		104, 101, 108, 108, 111, 0
 ;goodbye	DCD		103, 111, 111, 100, 98, 121, 101, 0
