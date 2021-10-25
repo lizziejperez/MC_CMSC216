@@ -9,17 +9,27 @@ post2infix
 		;		storing LR at FP-8
 		sub		r13, r13, #-8
 		str		LR, [r11, #-8]
-
-		;		Note: input(r0) is the address of a packed C-style string
-
+		;		storing input in r3
+		mov		r3, r0
+		;		Note: input is the address of a packed C-style string (reverse?)
+		;		sets r2 to _STRLEN(r0)
+		bl		_STRLEN
+		mov     r2, r0
+		;		starts processing the string
+		bl		process0
 		;		restoring LR from FP-8
 		ldr		LR, [r11, #-8]
 		add		r13, r13, #8
 		;		restore FP and SP
 		ldr		r11, [r13, #4]!
 
-process
-		;		if the charater is blank, skip it
+process0
+		ldrb		r4, [r3, #r2]
+		cmp		r4, #0
+		bne		process1
+		mov		PC, LR
+process1
+		;		if the charater(r4) is blank, skip it
 		;		if the character is a digit, put in onto the stack
 		;		otherwise, it is an operator
 		;				(a) pop the term2 off the stack
