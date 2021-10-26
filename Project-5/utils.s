@@ -54,6 +54,8 @@ _POST2INFIX_L4 ; if the character is a digit, put in onto the stack
 		B		_POST2INFIX_L1
 _POST2INFIX_L5 ; it is an operator
 		;	(a) pop the term2 off the stack
+		BL		_POP
+		;STR		R0, [R11 #-]
 		;	(b) pop the term1 off the stack
 		;	(c) concatenate: '('+term1+operator+term2+')'
 		;	(d) push the concatenated string onto the stack
@@ -61,7 +63,7 @@ _POST2INFIX_L6 ; at the end of the input string, if there is only one thing on t
 		BL		_STACK_SIZE
 		CMP		R0, #1
 		BNE		???
-		_POP
+		BL		_POP
 
 _POST2INFIX_RTN
 		ADD		SP, SP, #16
