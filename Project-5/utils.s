@@ -7,63 +7,34 @@
 ; Just a little main routine for testing purposes
 ;
 _MAIN
-			MOV		R0, #4
-			BL		_ALLOC
-			CMP		R0, #0
-			BEQ		_MAIN_END
-			MOV		R1, #40
-			STRB		R1, [R0]
-			MOV		R0, #4
-			BL		_ALLOC
-			CMP		R0, #0
-			BEQ		_MAIN_END
-			MOV		R1, #41
-			STRB		R1, [R0]
-			
-			ADR		R0, HELLO
-			MOV		R1, #7
-			LDRB		R4, [R0, R1]
-			MOV		R0, #4
-			BL		_ALLOC
-			CMP		R0, #0
-			BEQ		_MAIN_END
-			STRB		R4, [R0]
-			BL		_PUSH
-			
-			ADR		R0, TEST
-			MOV		R1, #2
-			LDRB		R4, [R0, R1]
-			MOV		R0, #4
-			BL		_ALLOC
-			CMP		R0, #0
-			BEQ		_MAIN_END
-			STRB		R4, [R0]
-			BL		_PUSH
-			
-			;(a) pop the term2 off the stack
-			BL		_POP
+			;ADR		R0, HELLO
+			;MOV		R1, #7
+			;LDRB		R4, [R0, R1]
+			;MOV		R0, #4
+			;BL		_ALLOC
+			;CMP		R0, #0
+			;BEQ		_MAIN_END
+			;STRB		R4, [R0]
+			;BL		_PUSH
+			ADR		R0, GFA_THREE
+			BL		_POST2INFIX
 			MOV		R4, R0
-			;(b) pop the term1 off the stack
-			BL		_POP
-			MOV		R5, R0
-			;(c) concatenate: '('+term1+operator+term2+')'
-			MOV		R1, R4
-			BL		_CONCAT
-			BL		_STRLEN
-			;(d) push the concatenated string onto the stack
 			
 _MAIN_END
 			END
 ;
 ; Two packed strings: "Hello, World!" and "This is a test."
 ;			
-HELLO		DCD		1819043144,1461726319,1684828783,33
-TEST		DCD		1936287828,544434464,1702109281,3044467
+;HELLO		DCD		1819043144,1461726319,1684828783,33
+;TEST		DCD		1936287828,544434464,1702109281,3044467
+;GFA_ONE		DCD		540155953,540221483,42
+;GFA_TWO		DCD		540352564,539631670,43
+GFA_THREE		DCD		540549175,539697209,42
 		
 _POST2INFIX ; setup
 		STMFD	SP!, {R14,R11}
 		MOV		R11, SP
-		SUB		SP, SP, #20
+		SUB		SP, SP, #24
 		STR		R0, [R11, #-4] ; storing input (a string address) at FP-4
 		MOV		R0, #0
 		STR		R0, [R11, #-8] ; storing index counter at FP-8
@@ -74,12 +45,12 @@ _POST2INFIX_L1
 		LDR		R1, [R11, #-8] ; loads index counter to R1
 		LDRB		R2, [R0, R1] ; loads the charater (input[index]) to R2
 		CMP		R2, #0
-		BGE		_POST2INFIX_RTN ; if the charater is null, branch to _POST2INFIX_RTN
+		BEQ		_POST2INFIX_RTN ; if the charater is null, branch to _POST2INFIX_RTN
 		CMP		R2, #32
 		BEQ		_POST2INFIX_L4 ; if the charater is blank, branch to _POST2INFIX_L4
 		; allocate space in memory for the character 
 		STR		R2, [R11, #-12] ; stores the character at FP-12
-		MOV		R0, #4
+		MOV		R0, #2
 		BL		_ALLOC
 		CMP		R0, #0
 		BEQ		_POST2INFIX_ERR ; if _ALLOC(4) fails, branch to _POST2INFIX_ERR
@@ -100,7 +71,7 @@ _POST2INFIX_L2 ; it is an operator
 		CMP		R0, #0
 		BNE		_POST2INFIX_L3
 		; allocate space in memory for '('
-		MOV		R0, #4
+		MOV		R0, #2
 		BL		_ALLOC
 		CMP		R0, #0
 		BEQ		_POST2INFIX_ERR ; if _ALLOC(4) fails, branch to _POST2INFIX_ERR
@@ -108,17 +79,16 @@ _POST2INFIX_L2 ; it is an operator
 		STRB		R1, [R0]
 		STR		R0, [R11, #-16] ; storing '(' at FP-16
 		; allocate space in memory for ')'
-		MOV		R0, #4
+		MOV		R0, #2
 		BL		_ALLOC
 		CMP		R0, #0
 		BEQ		_POST2INFIX_ERR ; if _ALLOC(4) fails, branch to _POST2INFIX_ERR
-		MOV		R1, #40
+		MOV		R1, #41
 		STRB		R1, [R0]
 		STR		R0, [R11, #-20] ; storing ')' at FP-20
 _POST2INFIX_L3
-		SUB		SP, SP, #4
 		BL		_POP ; (a) pop the term2 off the stack
-		STR		R0, [R11 #-24] ; storing term2 at FP-24
+		STR		R0, [R11, #-24] ; storing term2 at FP-24
 		BL		_POP ; (b) pop the term1 off the stack
 		; (c) concatenate: '('+term1+operator+term2+')'
 		MOV		R1, R0
@@ -131,7 +101,6 @@ _POST2INFIX_L3
 		LDR		R1, [R11, #-20]
 		BL		_CONCAT ; '('+term1+operator+term2+')'
 		BL		_PUSH ; (d) push the concatenated string onto the stack
-		ADD		SP, SP, #4
 _POST2INFIX_L4
 		; increases index counter by 1
 		LDR		R1, [R11, #-8] ; loads index counter to R1
@@ -143,13 +112,14 @@ _POST2INFIX_RTN ; at the end of the input string, if there is only one thing on 
 		CMP		R0, #1
 		BNE		_POST2INFIX_ERR
 		BL		_POP
-_POST2INFIX_END ; clean up
-		ADD		SP, SP, #20
-		LDMFD	SP!, {R14,R11}
-		MOVEQ	R15, R14
+		B		_POST2INFIX_END
 _POST2INFIX_ERR
 		MOV		R0, #-1
 		B		_POST2INFIX_END
+_POST2INFIX_END ; clean up
+		ADD		SP, SP, #24
+		LDMFD	SP!, {R14,R11}
+		MOV	R15, R14
 			
 ; ******* Subroutines begin here *******		
 
