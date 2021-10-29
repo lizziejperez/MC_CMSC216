@@ -1,11 +1,10 @@
 ; Name: Elizabeth Perez
 ; Student ID: eperez57
 ; M-number: M20966722
-
 _POST2INFIX ; setup
 		STMFD	SP!, {R14,R11}
 		MOV		R11, SP
-		SUB		SP, SP, #20
+		SUB		SP, SP, #24
 		STR		R0, [R11, #-4] ; storing input (a string address) at FP-4
 		MOV		R0, #0
 		STR		R0, [R11, #-8] ; storing index counter at FP-8
@@ -16,12 +15,12 @@ _POST2INFIX_L1
 		LDR		R1, [R11, #-8] ; loads index counter to R1
 		LDRB		R2, [R0, R1] ; loads the charater (input[index]) to R2
 		CMP		R2, #0
-		BGE		_POST2INFIX_RTN ; if the charater is null, branch to _POST2INFIX_RTN
+		BEQ		_POST2INFIX_RTN ; if the charater is null, branch to _POST2INFIX_RTN
 		CMP		R2, #32
 		BEQ		_POST2INFIX_L4 ; if the charater is blank, branch to _POST2INFIX_L4
 		; allocate space in memory for the character 
 		STR		R2, [R11, #-12] ; stores the character at FP-12
-		MOV		R0, #4
+		MOV		R0, #2
 		BL		_ALLOC
 		CMP		R0, #0
 		BEQ		_POST2INFIX_ERR ; if _ALLOC(4) fails, branch to _POST2INFIX_ERR
@@ -42,7 +41,7 @@ _POST2INFIX_L2 ; it is an operator
 		CMP		R0, #0
 		BNE		_POST2INFIX_L3
 		; allocate space in memory for '('
-		MOV		R0, #4
+		MOV		R0, #2
 		BL		_ALLOC
 		CMP		R0, #0
 		BEQ		_POST2INFIX_ERR ; if _ALLOC(4) fails, branch to _POST2INFIX_ERR
@@ -50,17 +49,16 @@ _POST2INFIX_L2 ; it is an operator
 		STRB		R1, [R0]
 		STR		R0, [R11, #-16] ; storing '(' at FP-16
 		; allocate space in memory for ')'
-		MOV		R0, #4
+		MOV		R0, #2
 		BL		_ALLOC
 		CMP		R0, #0
 		BEQ		_POST2INFIX_ERR ; if _ALLOC(4) fails, branch to _POST2INFIX_ERR
-		MOV		R1, #40
+		MOV		R1, #41
 		STRB		R1, [R0]
 		STR		R0, [R11, #-20] ; storing ')' at FP-20
 _POST2INFIX_L3
-		SUB		SP, SP, #4
 		BL		_POP ; (a) pop the term2 off the stack
-		STR		R0, [R11 #-24] ; storing term2 at FP-24
+		STR		R0, [R11, #-24] ; storing term2 at FP-24
 		BL		_POP ; (b) pop the term1 off the stack
 		; (c) concatenate: '('+term1+operator+term2+')'
 		MOV		R1, R0
@@ -73,7 +71,6 @@ _POST2INFIX_L3
 		LDR		R1, [R11, #-20]
 		BL		_CONCAT ; '('+term1+operator+term2+')'
 		BL		_PUSH ; (d) push the concatenated string onto the stack
-		ADD		SP, SP, #4
 _POST2INFIX_L4
 		; increases index counter by 1
 		LDR		R1, [R11, #-8] ; loads index counter to R1
@@ -85,15 +82,109 @@ _POST2INFIX_RTN ; at the end of the input string, if there is only one thing on 
 		CMP		R0, #1
 		BNE		_POST2INFIX_ERR
 		BL		_POP
-_POST2INFIX_END ; clean up
-		ADD		SP, SP, #20
-		LDMFD	SP!, {R14,R11}
-		MOVEQ	R15, R14
+		B		_POST2INFIX_END
 _POST2INFIX_ERR
 		MOV		R0, #-1
 		B		_POST2INFIX_END
+_POST2INFIX_END ; clean up
+		ADD		SP, SP, #24
+		LDMFD	SP!, {R14,R11}
+		MOV	R15, R14
 
 ; ********* OLD CODE VERSIONS ***********************
+_POST2INFIX ; setup
+		STMFD	SP!, {R14,R11}
+		MOV		R11, SP
+		SUB		SP, SP, #28
+		STR		LR, [R11, #-8] ; storing LR at FP-8
+		STR		R0, [R11, #-12] ; storing input (a string address) at FP-12
+		MOV		R0, #0
+		STR		R0, [R11, #-16] ; storing index counter at FP-16
+		STR		R0, [R11, #-20] ; storing 0 at FP-20
+		STR		R0, [R11, #-24] ; storing 0 at FP-24
+_POST2INFIX_L1
+		LDR		R0, [R11, #-12] ; loads input string to R0
+		LDR		R1, [R11, #-16] ; loads index counter to R1
+		LDRB		R2, [R0, R1] ; loads the charater (input[index]) to R2
+		CMP		R2, #0
+		BEQ		_POST2INFIX_RTN ; if the charater is null, branch to _POST2INFIX_RTN
+		CMP		R2, #32
+		BEQ		_POST2INFIX_L4 ; if the charater is blank, branch to _POST2INFIX_L4
+		; allocate space in memory for the character 
+		STR		R2, [R11, #-20] ; stores the character at FP-20
+		MOV		R0, #4
+		BL		_ALLOC
+		CMP		R0, #0
+		BEQ		_POST2INFIX_ERR ; if _ALLOC(4) fails, branch to _POST2INFIX_ERR
+		LDR		R2, [R11, #-20] ; restores the character to R2
+		STRB		R2, [R0]
+		; if the character is less than '0', branch to _POST2INFIX_L2
+		CMP		R2, #48
+		BLT		_POST2INFIX_L2
+		; if the character is less than '9', branch to _POST2INFIX_L2
+		CMP		R2, #57
+		BGT		_POST2INFIX_L2
+		; the charater is a digit - push onto stack
+		BL		_PUSH
+		B		_POST2INFIX_L4
+_POST2INFIX_L2 ; it is an operator
+		STR		R0, [R11, #-20] ; storing the operator at FP-20
+		LDR		R0, [R11, #-24]
+		CMP		R0, #0
+		BNE		_POST2INFIX_L3
+		; allocate space in memory for '('
+		MOV		R0, #4
+		BL		_ALLOC
+		CMP		R0, #0
+		BEQ		_POST2INFIX_ERR ; if _ALLOC(4) fails, branch to _POST2INFIX_ERR
+		MOV		R1, #40
+		STRB		R1, [R0]
+		STR		R0, [R11, #-24] ; storing '(' at FP-24
+		; allocate space in memory for ')'
+		MOV		R0, #4
+		BL		_ALLOC
+		CMP		R0, #0
+		BEQ		_POST2INFIX_ERR ; if _ALLOC(4) fails, branch to _POST2INFIX_ERR
+		MOV		R1, #40
+		STRB		R1, [R0]
+		STR		R0, [R11, #-28] ; storing ')' at FP-28
+_POST2INFIX_L3
+		SUB		SP, SP, #4
+		BL		_POP ; (a) pop the term2 off the stack
+		STR		R0, [R11, #-32] ; storing term2 at FP-32
+		BL		_POP ; (b) pop the term1 off the stack
+		; (c) concatenate: '('+term1+operator+term2+')'
+		MOV		R1, R0
+		LDR		R0, [R11, #-24]
+		BL		_CONCAT ; '('+term1
+		LDR		R1, [R11, #-20]
+		BL		_CONCAT ; '('+term1+operator
+		LDR		R1, [R11, #-32]
+		BL		_CONCAT ; '('+term1+operator+term2
+		LDR		R1, [R11, #-28]
+		BL		_CONCAT ; '('+term1+operator+term2+')'
+		BL		_PUSH ; (d) push the concatenated string onto the stack
+		ADD		SP, SP, #4
+_POST2INFIX_L4
+		; increases index counter by 1
+		LDR		R1, [R11, #-16] ; loads index counter to R1
+		ADD		R1, R1, #1
+		STR		R1, [R11, #-16]
+		B		_POST2INFIX_L1
+_POST2INFIX_ERR
+		MOV		R0, #-1
+		B		_POST2INFIX_END
+_POST2INFIX_RTN ; at the end of the input string, if there is only one thing on the stack, it is converted infix formulation of the expression
+		BL		_STACK_SIZE
+		CMP		R0, #1
+		BNE		_POST2INFIX_ERR
+		BL		_POP
+_POST2INFIX_END ; clean up
+		LDR		LR, [11, #-8] ; restoring LR from FP-8
+		ADD		SP, SP, #28
+		LDMFD	SP!, {R14,R11}
+		MOVEQ	R15, R14
+;*****************************************************
 _POST2INFIX ; setup
 		STMFD	SP!, {R14,R11}
 		MOV		R11, SP
@@ -156,7 +247,7 @@ _POST2INFIX_END ; clean up
 _POST2INFIX_ERR
 		MOV		R0, #-1
 		B		_POST2INFIX_END
-
+;*****************************************************
 ; Note: input is the address of a packed C-style string (reverse?)
 ; only use r0-r3, if others need use store/restore them using the stack
 ; if the charater(r4) is blank, skip it
