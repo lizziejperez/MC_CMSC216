@@ -16,9 +16,15 @@ _MAIN
 			;BEQ		_MAIN_END
 			;STRB		R4, [R0]
 			;BL		_PUSH
-			ADR		R0, GFA_THREE
+			;ADR		R0, GFA_THREE
+			;BL		_POST2INFIX
+			;MOV		R4, R0
+			;ADR		R0, GFA_TWO
+			;BL		_POST2INFIX
+			;MOV		R5, R0
+			ADR		R0, GFA_ONE
 			BL		_POST2INFIX
-			MOV		R4, R0
+			MOV		R6, R0
 			
 _MAIN_END
 			END
@@ -27,19 +33,17 @@ _MAIN_END
 ;			
 ;HELLO		DCD		1819043144,1461726319,1684828783,33
 ;TEST		DCD		1936287828,544434464,1702109281,3044467
-;GFA_ONE		DCD		540155953,540221483,42
+GFA_ONE		DCD		540155953,540221483,42
 ;GFA_TWO		DCD		540352564,539631670,43
-GFA_THREE		DCD		540549175,539697209,42
-		
-_POST2INFIX ; setup
+;GFA_THREE		DCD		540549175,539697209,42
+
+_POST2INFIX
 		STMFD	SP!, {R14,R11}
 		MOV		R11, SP
 		SUB		SP, SP, #24
 		STR		R0, [R11, #-4] ; storing input (a string address) at FP-4
 		MOV		R0, #0
 		STR		R0, [R11, #-8] ; storing index counter at FP-8
-		STR		R0, [R11, #-12] ; storing 0 at FP-12
-		STR		R0, [R11, #-16] ; storing 0 at FP-16
 _POST2INFIX_L1
 		LDR		R0, [R11, #-4] ; loads input string to R0
 		LDR		R1, [R11, #-8] ; loads index counter to R1
@@ -48,49 +52,31 @@ _POST2INFIX_L1
 		BEQ		_POST2INFIX_RTN ; if the charater is null, branch to _POST2INFIX_RTN
 		CMP		R2, #32
 		BEQ		_POST2INFIX_L4 ; if the charater is blank, branch to _POST2INFIX_L4
-		; allocate space in memory for the character 
 		STR		R2, [R11, #-12] ; stores the character at FP-12
-		MOV		R0, #2
-		BL		_ALLOC
-		CMP		R0, #0
-		BEQ		_POST2INFIX_ERR ; if _ALLOC(4) fails, branch to _POST2INFIX_ERR
+		MOV		R0, R2
+		BL		_POST2INFIX_CHARPTR
 		LDR		R2, [R11, #-12] ; restores the character to R2
-		STRB		R2, [R0]
-		; if the character is less than '0', branch to _POST2INFIX_L2
 		CMP		R2, #48
-		BLT		_POST2INFIX_L2
-		; if the character is less than '9', branch to _POST2INFIX_L2
+		BLT		_POST2INFIX_L2 ; if the character is less than '0', branch to _POST2INFIX_L2
 		CMP		R2, #57
-		BGT		_POST2INFIX_L2
-		; the charater is a digit - push onto stack
-		BL		_PUSH
+		BGT		_POST2INFIX_L2 ; if the character is less than '9', branch to _POST2INFIX_L2
+		BL		_PUSH ; the charater is a digit - push onto stack
 		B		_POST2INFIX_L4
-_POST2INFIX_L2 ; it is an operator
+_POST2INFIX_L2
 		STR		R0, [R11, #-12] ; storing the operator at FP-12
 		LDR		R0, [R11, #-16]
 		CMP		R0, #0
 		BNE		_POST2INFIX_L3
-		; allocate space in memory for '('
-		MOV		R0, #2
-		BL		_ALLOC
-		CMP		R0, #0
-		BEQ		_POST2INFIX_ERR ; if _ALLOC(4) fails, branch to _POST2INFIX_ERR
-		MOV		R1, #40
-		STRB		R1, [R0]
+		MOV		R0, #40
+		BL		_POST2INFIX_CHARPTR
 		STR		R0, [R11, #-16] ; storing '(' at FP-16
-		; allocate space in memory for ')'
-		MOV		R0, #2
-		BL		_ALLOC
-		CMP		R0, #0
-		BEQ		_POST2INFIX_ERR ; if _ALLOC(4) fails, branch to _POST2INFIX_ERR
-		MOV		R1, #41
-		STRB		R1, [R0]
+		MOV		R0, #41
+		BL		_POST2INFIX_CHARPTR
 		STR		R0, [R11, #-20] ; storing ')' at FP-20
 _POST2INFIX_L3
 		BL		_POP ; (a) pop the term2 off the stack
 		STR		R0, [R11, #-24] ; storing term2 at FP-24
 		BL		_POP ; (b) pop the term1 off the stack
-		; (c) concatenate: '('+term1+operator+term2+')'
 		MOV		R1, R0
 		LDR		R0, [R11, #-16]
 		BL		_CONCAT ; '('+term1
@@ -100,23 +86,35 @@ _POST2INFIX_L3
 		BL		_CONCAT ; '('+term1+operator+term2
 		LDR		R1, [R11, #-20]
 		BL		_CONCAT ; '('+term1+operator+term2+')'
-		BL		_PUSH ; (d) push the concatenated string onto the stack
+		BL		_PUSH ; push the concatenated string onto the stack
 _POST2INFIX_L4
-		; increases index counter by 1
 		LDR		R1, [R11, #-8] ; loads index counter to R1
 		ADD		R1, R1, #1
-		STR		R1, [R11, #-8]
+		STR		R1, [R11, #-8] ; increases index counter by 1
 		B		_POST2INFIX_L1
-_POST2INFIX_RTN ; at the end of the input string, if there is only one thing on the stack, it is converted infix formulation of the expression
+_POST2INFIX_CHARPTR
+		STMFD	SP!, {R14,R11}
+		MOV		R11, SP
+		SUB		SP, SP, #4
+		STR		R0, [R11, #-4]
+		MOV		R0, #2
+		BL		_ALLOC
+		CMP		R0, #0
+		BEQ		_POST2INFIX_ERR ; if _ALLOC fails, return error
+		LDR		R1, [R11, #-4]
+		STRB		R1, [R0]
+		ADD		SP, SP, #4
+		LDMFD	SP!, {R14,R11}
+		MOV	R15, R14
+_POST2INFIX_ERR
+		MOV		R0, #0
+		B		_POST2INFIX_END
+_POST2INFIX_RTN
 		BL		_STACK_SIZE
 		CMP		R0, #1
-		BNE		_POST2INFIX_ERR
+		BNE		_POST2INFIX_ERR ; if there is not one thing on the stack, return error
 		BL		_POP
-		B		_POST2INFIX_END
-_POST2INFIX_ERR
-		MOV		R0, #-1
-		B		_POST2INFIX_END
-_POST2INFIX_END ; clean up
+_POST2INFIX_END
 		ADD		SP, SP, #24
 		LDMFD	SP!, {R14,R11}
 		MOV	R15, R14
