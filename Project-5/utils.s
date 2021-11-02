@@ -1,41 +1,24 @@
-; Utility functions for CMSC216
-; Project #5 - Fall 2021
-; Author: Sandro Fouche
-; Copyright 2021
+; Name: Elizabeth Perez
+; Student ID: eperez57
+; M-number: M20966722
 
-
-; Just a little main routine for testing purposes
-;
 _MAIN
-			;ADR		R0, HELLO
-			;MOV		R1, #7
-			;LDRB		R4, [R0, R1]
-			;MOV		R0, #4
-			;BL		_ALLOC
-			;CMP		R0, #0
-			;BEQ		_MAIN_END
-			;STRB		R4, [R0]
-			;BL		_PUSH
 			;ADR		R0, GFA_THREE
 			;BL		_POST2INFIX
-			;MOV		R4, R0
-			;ADR		R0, GFA_TWO
-			;BL		_POST2INFIX
-			;MOV		R5, R0
-			ADR		R0, GFA_ONE
+			;MOV		R6, R0
+			ADR		R0, TEST_FIVE
 			BL		_POST2INFIX
 			MOV		R6, R0
-			
-_MAIN_END
 			END
-;
-; Two packed strings: "Hello, World!" and "This is a test."
-;			
-;HELLO		DCD		1819043144,1461726319,1684828783,33
-;TEST		DCD		1936287828,544434464,1702109281,3044467
-GFA_ONE		DCD		540155953,540221483,42
+; Test Packed Strings
+;GFA_ONE		DCD		540155953,540221483,42
 ;GFA_TWO		DCD		540352564,539631670,43
 ;GFA_THREE		DCD		540549175,539697209,42
+;TEST_ONE		DCD		540155953,540221485,47
+;TEST_TWO		DCD		540352564,539959350,45
+;TEST_THREE		DCD		540549175,539828281,47
+;TEST_FOUR		DCD		540155953,540221483,540287018,540418101,539697194,540483629,540614712,5
+TEST_FIVE		DCD		540155953,540024875,42
 
 _POST2INFIX
 		STMFD	SP!, {R14,R11}
@@ -53,9 +36,12 @@ _POST2INFIX_L1
 		CMP		R2, #32
 		BEQ		_POST2INFIX_L4 ; branches if the character is blank
 		STR		R2, [R11, #-12] ; stores the character at FP-12
-		MOV		R0, R2
-		BL		_POST2INFIX_CHARPTR ; creates and returns a char* with the character in R0
+		MOV		R0, #2
+		BL		_ALLOC
+		CMP		R0, #0
+		BEQ		_POST2INFIX_ERR ; if _ALLOC fails, return error
 		LDR		R2, [R11, #-12] ; loads the character to R2
+		STRB		R2, [R0] ; stores the character in char*
 		CMP		R2, #48
 		BLT		_POST2INFIX_L2 ; branches if the character is less than '0'
 		CMP		R2, #57
@@ -66,13 +52,21 @@ _POST2INFIX_L2
 		STR		R0, [R11, #-12] ; storing the operator at FP-12
 		LDR		R0, [R11, #-16]
 		CMP		R0, #0
-		BNE		_POST2INFIX_L3
-		MOV		R0, #40
-		BL		_POST2INFIX_CHARPTR
-		STR		R0, [R11, #-16] ; storing '(' at FP-16
-		MOV		R0, #41
-		BL		_POST2INFIX_CHARPTR
-		STR		R0, [R11, #-20] ; storing ')' at FP-20
+		BNE		_POST2INFIX_L3 ; branches if FP-16 is not 0
+		MOV		R0, #2
+		BL		_ALLOC
+		CMP		R0, #0
+		BEQ		_POST2INFIX_ERR ; if _ALLOC fails, return error
+		MOV		R2, #40
+		STRB		R2, [R0] ; stores '(' in char*
+		STR		R0, [R11, #-16] ; storing "(" at FP-16
+		MOV		R0, #2
+		BL		_ALLOC
+		CMP		R0, #0
+		BEQ		_POST2INFIX_ERR ; if _ALLOC fails, return error
+		MOV		R2, #41
+		STRB		R2, [R0] ; stores ')' in char*
+		STR		R0, [R11, #-20] ; storing ")" at FP-20
 _POST2INFIX_L3
 		BL		_POP ; pop the term2 off the stack
 		STR		R0, [R11, #-24] ; storing term2 at FP-24
@@ -92,20 +86,6 @@ _POST2INFIX_L4
 		ADD		R1, R1, #1
 		STR		R1, [R11, #-8] ; increases index by 1
 		B		_POST2INFIX_L1 ; next loop iteration (checks the next character)
-_POST2INFIX_CHARPTR
-		STMFD	SP!, {R14,R11}
-		MOV		R11, SP
-		SUB		SP, SP, #4
-		STR		R0, [R11, #-4]
-		MOV		R0, #2
-		BL		_ALLOC
-		CMP		R0, #0
-		BEQ		_POST2INFIX_ERR ; if _ALLOC fails, return error
-		LDR		R1, [R11, #-4]
-		STRB		R1, [R0]
-		ADD		SP, SP, #4
-		LDMFD	SP!, {R14,R11}
-		MOV	R15, R14
 _POST2INFIX_ERR
 		MOV		R0, #0
 		B		_POST2INFIX_END
@@ -118,6 +98,11 @@ _POST2INFIX_END
 		ADD		SP, SP, #24
 		LDMFD	SP!, {R14,R11}
 		MOV	R15, R14
+
+; Utility functions for CMSC216
+; Project #5 - Fall 2021
+; Author: Sandro Fouche
+; Copyright 2021
 			
 ; ******* Subroutines begin here *******		
 
