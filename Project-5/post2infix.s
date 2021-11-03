@@ -1,6 +1,11 @@
 ; Name: Elizabeth Perez
 ; Student ID: eperez57
 ; M-number: M20966722
+
+; applies a postfix to infix algorithm on the sting passed into R0 and returns the result
+; but returns null if algorithm ends with more than one string on the stack or if any alloc fails
+; char *_POST2INFIX(char *R0)
+; clobbers registers: R0, R1, R2
 _POST2INFIX
 		STMFD	SP!, {R14,R11}
 		MOV		R11, SP
