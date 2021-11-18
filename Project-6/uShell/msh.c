@@ -1,7 +1,7 @@
 /* 
  * msh - A micro shell program with job control
  * 
- * <Put your name and login ID here>
+ * Elizabeth Perez (eperez57)
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -504,6 +504,3 @@ void sigquit_handler(int sig)
     printf("Terminating after receipt of SIGQUIT signal\n");
     exit(1);
 }
-
-
-
