@@ -165,6 +165,35 @@ int main(int argc, char **argv)
 */
 void eval(char *cmdline) 
 {
+    char *argv[MAXARGS];    /* Argument list execve() */
+    char buf[MAXLINE];    /* Holds modified command line */
+    int bg;    /* Should the job run in bg or fg? */
+    pid_t pid;    /* Process id */
+
+    strcpy(buf,cmdline);
+    bg = parseline(buf,argv);
+
+    if (argv[0] == NULL) return;    /* Ignore empty lines */
+
+    if (!builtin_command(argv)) {
+        // TODO - EDIT
+        if ((pid = Fork()) == 0) {    /* Child runs user job */
+            if (execve(argv[0], argv, environ) < 0) {
+                printf("%s: Command not found.\n", argv[0]);
+                exit(0);
+            }
+        }
+
+        /* Parent waits for foreground job to terminate */
+        if (!bg) {
+            int status;
+            if (waitpid(pid, &status, 0) < 0)
+                perror("waitfg: waitpid error");
+            }
+            else
+                printf("%d %s", pid, cmdline);
+    }
+
     return;
 }
 
@@ -231,7 +260,19 @@ int parseline(const char *cmdline, char **argv)
  */
 int builtin_cmd(char **argv) 
 {
-    return 0;     /* not a builtin command */
+    if(!strcmp(argv[0], "quit")) exit(0);
+
+    if(!strcmp(argv[0], "jobs")) {
+        listjobs(&jobs);
+        return 1;
+    }
+
+    if((!strcmp(argv[0], "fg")) || (!strcmp(argv[0], "bg"))) {
+        do_bgfg(argv);
+        return 1;
+    }
+
+    return 0;   /* not a builtin command */
 }
 
 /* 
@@ -239,6 +280,28 @@ int builtin_cmd(char **argv)
  */
 void do_bgfg(char **argv) 
 {
+    struct job_t *job;
+
+    if(argv[1][0] == '%') {
+        int jid;
+        sscanf(argv[1], "%*c%d", jid);
+        job = getjobjid(jobs, jid);
+    } else {
+        pid_t pid;
+        sscanf(argv[1], "%d", pid);
+        job = getjobpid(&jobs, pid);
+    }
+
+    if(job == NULL) app_error("Job not found.");
+
+    if(!strcmp(argv[0], "fg")) {
+        /* Change a stopped or running background job to a running in the foreground. */
+    }
+
+    if(!strcmp(argv[0], "bg")) {
+        /* Change a stopped background job to a running background job */
+    }
+
     return;
 }
 
@@ -247,6 +310,7 @@ void do_bgfg(char **argv)
  */
 void waitfg(pid_t pid)
 {
+    while(pid == fgpid(&jobs)) sleep(1);
     return;
 }
 
@@ -263,11 +327,12 @@ void waitfg(pid_t pid)
  */
 void sigchld_handler(int sig) 
 {
+    waitpid();
     return;
 }
 
 /* 
- * sigint_handler - The kernel sends a SIGINT to the shell whenver the
+ * sigint_handler - The kernel sends a SIGINT to the shell whenever the
  *    user types ctrl-c at the keyboard.  Catch it and send it along
  *    to the foreground job.  
  */
