@@ -307,12 +307,12 @@ void do_bgfg(char **argv)
         if(job->state == BG) {  /* change the running background job to running in the foreground. */
             job->state = FG;
             waitfg(pid);
-        }
-
-        if(job->state == ST) {  /* change the stopped job to running in the foreground. */
+        } else if(job->state == ST) {  /* change the stopped job to running in the foreground. */
             /* TODO - make the job start running */
             job->state = FG;
             waitfg(pid);
+        } else {
+            printf("Job is already running in the foreground.");
         }
     }
 
