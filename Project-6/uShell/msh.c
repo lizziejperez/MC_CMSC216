@@ -173,25 +173,24 @@ void eval(char *cmdline)
     strcpy(buf,cmdline);
     bg = parseline(buf,argv);
 
-    if (argv[0] == NULL) return;    /* Ignore empty lines */
+    if(argv[0] == NULL) return;    /* Ignore empty lines */
 
-    if (!builtin_command(argv)) {
-        // TODO - EDIT
-        if ((pid = Fork()) == 0) {    /* Child runs user job */
-            if (execve(argv[0], argv, environ) < 0) {
+    if(!builtin_command(argv)) {
+        if((pid = Fork()) == 0) {    /* Child runs user job */
+            if(execve(argv[0], argv, environ) < 0) {
                 printf("%s: Command not found.\n", argv[0]);
                 exit(0);
             }
         }
 
         /* Parent waits for foreground job to terminate */
-        if (!bg) {
-            int status;
-            if (waitpid(pid, &status, 0) < 0)
-                perror("waitfg: waitpid error");
-            }
-            else
-                printf("%d %s", pid, cmdline);
+        if(!bg) {
+            if(addjob(jobs, pid, FG, cmdline)) waitfg(pid);
+            else app_error("Job not added.");
+        } else {
+            if(addjob(jobs, pid, BG, cmdline)) printf("%d %s", pid, cmdline);
+            else app_error("Job not added.");
+        }
     }
 
     return;
@@ -263,7 +262,7 @@ int builtin_cmd(char **argv)
     if(!strcmp(argv[0], "quit")) exit(0);
 
     if(!strcmp(argv[0], "jobs")) {
-        listjobs(&jobs);
+        listjobs(jobs);
         return 1;
     }
 
@@ -280,26 +279,48 @@ int builtin_cmd(char **argv)
  */
 void do_bgfg(char **argv) 
 {
-    struct job_t *job;
+    if(argv[1] == NULL) {   /* Checks that there is a second argument */
+        app_error("No jid or pid given.");
+        return;
+    }
 
-    if(argv[1][0] == '%') {
+    struct job_t *job;
+    pid_t pid;
+
+    if(argv[1][0] == '%') {   /* gets the job if given the jid */
         int jid;
         sscanf(argv[1], "%*c%d", jid);
         job = getjobjid(jobs, jid);
-    } else {
-        pid_t pid;
+    } else {      /* gets the job if given the pid */
         sscanf(argv[1], "%d", pid);
-        job = getjobpid(&jobs, pid);
+        job = getjobpid(jobs, pid);
     }
 
-    if(job == NULL) app_error("Job not found.");
+    if(job == NULL) {   /* Checks that the job was found */
+        app_error("Job not found.");
+        return;
+    }
+
+    pid = job->pid;
 
     if(!strcmp(argv[0], "fg")) {
-        /* Change a stopped or running background job to a running in the foreground. */
+        if(job->state == BG) {  /* change the running background job to running in the foreground. */
+            job->state = FG;
+            waitfg(pid);
+        }
+
+        if(job->state == ST) {  /* change the stopped job to running in the foreground. */
+            /* TODO - make the job start running */
+            job->state = FG;
+            waitfg(pid);
+        }
     }
 
     if(!strcmp(argv[0], "bg")) {
-        /* Change a stopped background job to a running background job */
+        if(job->state == ST) { /* change the job to running in the background. */
+            /* TODO - make the job start running */
+            job->state = BG;
+        }
     }
 
     return;
@@ -310,7 +331,8 @@ void do_bgfg(char **argv)
  */
 void waitfg(pid_t pid)
 {
-    while(pid == fgpid(&jobs)) sleep(1);
+    while(pid == fgpid(jobs)) sleep(1);
+
     return;
 }
 
@@ -327,8 +349,28 @@ void waitfg(pid_t pid)
  */
 void sigchld_handler(int sig) 
 {
+    /* EXAMPLE CODE
+    pid_t pid; 
+	int status; 
+	while ((pid=waitpid(WAIT_ANY,&status,WNOHANG|WUNTRACED)) > 0){ //While there are still children to kill 
+		//	fprintf(stderr,"Killed child with PID [%d]\n",pid); //Print out the child ID number that we killed
+		if(WIFSIGNALED(status)){
+			//fprintf(stderr, "Process %d recieved signal of type: %s.\n", pid,strsignal(WTERMSIG(status))); BETTER VERSION!!
+		   fprintf(stderr, "Job [%d] (%d) terminated by signal %d\n", pid2jid(pid),pid,WTERMSIG(status)); //LAME VERSION
+		}
+		else if(WIFSTOPPED(status))
+		{
+		   fprintf(stderr, "Job [%d] (%d) stopped by signal %d\n", pid2jid(pid),pid,WSTOPSIG(status)); //LAME VERSION	
+			return;
+		}
+		deletejob(jobs, pid); //Reaper 
+	} 
+    */
+
     waitpid();
+
     return;
+    
 }
 
 /* 
@@ -338,6 +380,12 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
+    pid_t pid = fgpid(jobs);
+
+    if(pid != 0) {
+        kill(-pid, SIGINT);
+    }
+
     return;
 }
 
@@ -348,6 +396,17 @@ void sigint_handler(int sig)
  */
 void sigtstp_handler(int sig) 
 {
+    pid_t pid = fgpid(jobs);
+
+    if(pid != 0) {
+        kill(-pid, SIGTSTP);
+
+        struct job_t *job = getjobpid(jobs, pid);
+        if(job != NULL) {
+            job->state = ST;
+        }
+    }
+
     return;
 }
 
