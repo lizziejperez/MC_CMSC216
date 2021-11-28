@@ -165,15 +165,15 @@ int main(int argc, char **argv)
 */
 void eval(char *cmdline) 
 {
-    char *argv[MAXARGS];    /* Argument list execve() */
-    char buf[MAXLINE];    /* Holds modified command line */
-    int bg;    /* Should the job run in bg or fg? */
-    pid_t pid;    /* Process id */
+    char *argv[MAXARGS]; /* Arguments */
+    char buf[MAXLINE]; /* Buffer for cmdline */
+    int bg; /* Boolean for job to run in background or not/foreground */
+    pid_t pid; /* Process id */
 
     strcpy(buf,cmdline);
     bg = parseline(buf,argv);
 
-    if(argv[0] == NULL) return;    /* Ignore empty lines */
+    if(argv[0] == NULL) return; /* Ignores empty line */
 
     if(!builtin_command(argv)) {
         if((pid = Fork()) == 0) {    /* Child runs user job */
