@@ -166,30 +166,35 @@ int main(int argc, char **argv)
 void eval(char *cmdline) 
 {
     char *argv[MAXARGS]; /* Arguments */
-    char buf[MAXLINE]; /* Buffer for cmdline */
     int bg; /* Boolean for job to run in background or not/foreground */
-    pid_t pid; /* Process id */
-
-    strcpy(buf,cmdline);
-    bg = parseline(buf,argv);
+    bg = parseline(cmdline, argv);
 
     if(argv[0] == NULL) return; /* Ignores empty line */
 
-    if(!builtin_command(argv)) {
-        if((pid = Fork()) == 0) {    /* Child runs user job */
-            if(execve(argv[0], argv, environ) < 0) {
+    int builtin; /* Boolean for if a built-in command was requested or not */
+    builtin = builtin_command(argv); /* If a built-in command is requested then it is executed immediately */
+
+    if(!builtin) { /* Checks if the request wasn't a built-in command */
+        pid_t pid; /* Process id */
+        pid = fork();
+
+        if(pid < 0) unix_error("Fork error"); /* Handles error */
+
+        if(pid == 0) { /* Checks if is child process */
+            /* Child runs job */
+            if(execv(argv[0], argv) < 0) {
+                /* Handles error */
                 printf("%s: Command not found.\n", argv[0]);
                 exit(0);
             }
         }
 
-        /* Parent waits for foreground job to terminate */
-        if(!bg) {
-            if(addjob(jobs, pid, FG, cmdline)) waitfg(pid);
-            else app_error("Job not added.");
+        if(!bg) { /* Checks if job will run in foreground */
+            addjob(jobs, pid, FG, cmdline); /* Adds child process to foreground jobs */
+            waitfg(pid); /* Waits for foreground job to terminate */
         } else {
-            if(addjob(jobs, pid, BG, cmdline)) printf("%d %s", pid, cmdline);
-            else app_error("Job not added.");
+            addjob(jobs, pid, BG, cmdline); /* Adds child process to background jobs */
+            printf("%d %s\n", pid, cmdline);
         }
     }
 
@@ -279,46 +284,49 @@ int builtin_cmd(char **argv)
  */
 void do_bgfg(char **argv) 
 {
-    if(argv[1] == NULL) {   /* Checks that there is a second argument */
-        app_error("No jid or pid given.");
+    if(argv[1] == NULL) { /* Checks that there is not a second argument */
+        printf("No jid or pid given.\n");
+        printf("%s\n", argv[0]);
         return;
     }
 
     struct job_t *job;
-    pid_t pid;
 
-    if(argv[1][0] == '%') {   /* gets the job if given the jid */
+    if(argv[1][0] == '%') { /* Gets the job if given the jid */
         int jid;
         sscanf(argv[1], "%*c%d", jid);
         job = getjobjid(jobs, jid);
-    } else {      /* gets the job if given the pid */
+    } else {  /* Gets the job if given the pid */
+        pid_t pid;
         sscanf(argv[1], "%d", pid);
         job = getjobpid(jobs, pid);
     }
 
-    if(job == NULL) {   /* Checks that the job was found */
-        app_error("Job not found.");
+    if(job == NULL) { /* Checks if the job was not found */
+        printf("Job not found.\n");
+        printf("%s %s\n", argv[0], argv[1]);
         return;
     }
 
-    pid = job->pid;
-
     if(!strcmp(argv[0], "fg")) {
-        if(job->state == BG) {  /* change the running background job to running in the foreground. */
+        if(job->state == BG) { /* Checks if the job is running in the background */
+            /* Changes the job to running in the foreground */
             job->state = FG;
-            waitfg(pid);
-        } else if(job->state == ST) {  /* change the stopped job to running in the foreground. */
-            /* TODO - make the job start running */
+            waitfg(job->pid);
+        }
+        
+        if(job->state == ST) { /* Checks if the job is stopped */
+            /* Changes the job to running in the foreground */
+            kill(-job->pid, SIGCONT);
             job->state = FG;
-            waitfg(pid);
-        } else {
-            printf("Job is already running in the foreground.");
+            waitfg(job->pid);
         }
     }
 
     if(!strcmp(argv[0], "bg")) {
-        if(job->state == ST) { /* change the job to running in the background. */
-            /* TODO - make the job start running */
+        if(job->state == ST) {  /* Checks if the job is stopped */
+            /* Changes the job to running in the background. */
+            kill(-job->pid, SIGCONT);
             job->state = BG;
         }
     }
@@ -349,25 +357,22 @@ void waitfg(pid_t pid)
  */
 void sigchld_handler(int sig) 
 {
-    /* EXAMPLE CODE
-    pid_t pid; 
-	int status; 
-	while ((pid=waitpid(WAIT_ANY,&status,WNOHANG|WUNTRACED)) > 0){ //While there are still children to kill 
-		//	fprintf(stderr,"Killed child with PID [%d]\n",pid); //Print out the child ID number that we killed
-		if(WIFSIGNALED(status)){
-			//fprintf(stderr, "Process %d recieved signal of type: %s.\n", pid,strsignal(WTERMSIG(status))); BETTER VERSION!!
-		   fprintf(stderr, "Job [%d] (%d) terminated by signal %d\n", pid2jid(pid),pid,WTERMSIG(status)); //LAME VERSION
-		}
-		else if(WIFSTOPPED(status))
-		{
-		   fprintf(stderr, "Job [%d] (%d) stopped by signal %d\n", pid2jid(pid),pid,WSTOPSIG(status)); //LAME VERSION	
-			return;
-		}
-		deletejob(jobs, pid); //Reaper 
-	} 
-    */
+    pid_t pid;
+    int status;
 
-    waitpid();
+    while((pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0) { /* While there are children running */
+        if(WIFEXITED(status)) { /* Checks if the job exited normally */
+            deletejob(jobs, pid);
+        }
+
+        if(WIFSIGNALED(status)) { /* Checks if the job exited due to a signal */
+            deletejob(jobs, pid);
+        }
+        
+        if(WIFSTOPPED(status)) { /* Checks if the job is stopped */
+            getjobpid(jobs, pid)->state = ST;
+        }
+    }
 
     return;
     
