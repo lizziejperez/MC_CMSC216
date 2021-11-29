@@ -171,10 +171,7 @@ void eval(char *cmdline)
 
     if(argv[0] == NULL) return; /* Ignores empty line */
 
-    int builtin; /* Boolean for if a built-in command was requested or not */
-    builtin = builtin_command(argv); /* If a built-in command is requested then it is executed immediately */
-
-    if(!builtin) { /* Checks if the request wasn't a built-in command */
+    if(!builtin_cmd(argv)) { /* Checks if the request wasn't a built-in command */
         pid_t pid; /* Process id */
         pid = fork();
 
@@ -293,13 +290,9 @@ void do_bgfg(char **argv)
     struct job_t *job;
 
     if(argv[1][0] == '%') { /* Gets the job if given the jid */
-        int jid;
-        sscanf(argv[1], "%*c%d", jid);
-        job = getjobjid(jobs, jid);
+        job = getjobjid(jobs, atoi(argv[1]+1));
     } else {  /* Gets the job if given the pid */
-        pid_t pid;
-        sscanf(argv[1], "%d", pid);
-        job = getjobpid(jobs, pid);
+        job = getjobpid(jobs, atoi(argv[1]));
     }
 
     if(job == NULL) { /* Checks if the job was not found */
