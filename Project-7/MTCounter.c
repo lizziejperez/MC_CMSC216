@@ -34,7 +34,7 @@ void MTC_decrement(MTCounter *counter) {
     pthread_mutex_unlock(counter->locker);
 }
 
-int MTC_destroy(struct MTCounter *counter) {
+int MTC_destroy(MTCounter *counter) {
     int value = MTC_value(counter);
     pthread_mutex_destroy(counter->locker);
     free(counter);
