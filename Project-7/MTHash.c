@@ -115,7 +115,7 @@ int MTH_delete(MTHash *hashTable, int value) {
     }
 
     pthread_mutex_unlock(ptr->locker);
-    return -1;
+    return -1; /* Case: Value not in hash table */
 }
 
 int MTH_size(MTHash *hashTable) {
@@ -128,7 +128,7 @@ int MTH_size(MTHash *hashTable) {
 
 int MTH_bucket_size(MTHash *hashTable, int index) {
     HashNode *ptr = hashTable->head;
-    for(int i = 0; i < index; i++) {
+    for(int i = 0; i < (index % hashTable->tsize); i++) {
         ptr = ptr->next;
     }
 
