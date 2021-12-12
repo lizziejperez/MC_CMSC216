@@ -5,9 +5,7 @@
 
 typedef struct _node {
     int id;
-    // pthread_mutex_t *locker;
     struct _node *next;
-    struct _node *prev;
 } Node;
 
 typedef struct _mt_cache {
@@ -24,126 +22,138 @@ MTCache *MTL_init(int size) {
     cache->used = 0;
     pthread_mutex_init(cache->locker, NULL);
     cache->mru = NULL;
+
+    while(cache->size < size) {
+        if(cache->mru == NULL) { /* Case: First node in cache */
+            cache->mru = malloc(sizeof(Node));
+            cache->mru->id = -1;
+            cache->mru->next = NULL;
+        } else {
+            Node *ptr = cache->mru;
+            while(ptr->next != NULL)
+                ptr = ptr->next;
+            ptr->next = malloc(sizeof(Node));
+            ptr->next->id = -1;
+            ptr->next->next = NULL;
+        }
+        cache->size++;
+    }
+
     return cache;
 }
 
 int MTL_add(MTCache *cache, int value) {
     if(value <= 0) return -1; /* Case: Invalid value given */
 
-    if(cache->mru == NULL) { /* Case: First entry */
-        pthread_mutex_lock(cache->locker);
-        cache->mru = malloc(sizeof(Node));
+    if(!MTL_update(cache, value)) return 0; /* Case: Already in cache */
+
+    pthread_mutex_lock(cache->locker);
+    if(cache->mru->id == -1) { /* Case: First entry */
         cache->mru->id = value;
-        cache->mru->next = NULL;
-        cache->mru->prev = NULL;
         cache->used++;
         pthread_mutex_unlock(cache->locker);
         return 0;
     }
 
-    /* Case: Already the mru in cache */
-    if(cache->mru->id == value) return 0;
-
-    pthread_mutex_lock(cache->locker);
-    Node *curr = cache->mru;
-    while(curr->next != NULL) {
-        if(curr->next->id == value) { /* Case: Already in cache */
-            Node *rem = curr->next->next;
-            curr->next->prev = NULL;
-            curr->next->next = cache->mru;
-            cache->mru->prev = curr->next;
-            cache->mru = curr->next;
-            curr->next = rem;
+    Node *ptr = cache->mru;
+    while(ptr->next != NULL) {
+        if(ptr->next->id == -1) { /* Case: Add in cache at mru (cache not full) */
+            Node *newMRU = ptr->next;
+            ptr->next = newMRU->next;
+            newMRU->id = value;
+            newMRU->next = cache->mru;
+            cache->mru = newMRU;
+            cache->used++;
             pthread_mutex_unlock(cache->locker);
             return 0;
         }
-        curr = curr->next;
+        if(ptr->next->next == NULL) { /* Case: Add in cache at mru (cache full) */
+            int rtn = ptr->next->id;
+            Node *newMRU = ptr->next;
+            ptr->next = NULL;
+            newMRU->id = value;
+            newMRU->next = cache->mru;
+            cache->mru = newMRU;
+            pthread_mutex_unlock(cache->locker);
+            return rtn;
+        }
+        ptr = ptr->next;
     }
-
-    Node *mru = malloc(sizeof(Node));   
-    mru->id = value;
-    mru->prev = NULL;
-    mru->next = cache->mru;
-    cache->mru->prev = mru;
-    cache->mru = mru;
-    cache->used++;
-
-    if(cache->used > cache->size) { /* Case: Add in cache at mru (cache full) */
-        int rtn = curr->id;
-        Node *prev = curr->prev;
-        free(curr);
-        prev->next = NULL;
-        pthread_mutex_unlock(cache->locker);
-        return rtn;
-    }
-    pthread_mutex_unlock(cache->locker);
-    return 0; /* Case: Add in cache at mru (cache not full) */
 }
 
 int MTL_update(MTCache *cache, int value) {
-    if(cache->mru == NULL) return -1; /* Case: Empty cache */
-    if(cache->mru->id == value) return 0; /* Case: Already mru */
-
     pthread_mutex_lock(cache->locker);
-    Node *curr = cache->mru;
-    while(curr->next != NULL) {
-        if(curr->next->id == value) { /* Case: Update value to be mru */
-            Node *rem = curr->next->next;
-            curr->next->prev = NULL;
-            curr->next->next = cache->mru;
-            cache->mru->prev = curr->next;
-            cache->mru = curr->next;
-            curr->next = rem;
+    if(cache->mru->id == value) { /* Case: Already mru */
+        pthread_mutex_unlock(cache->locker);
+        return 0;
+    }
+
+    Node *ptr = cache->mru;
+    while(ptr->next != NULL) {
+        if(ptr->next->id == -1) { /* Case: Value not found in cache */
+            pthread_mutex_unlock(cache->locker);
+            return -1;
+        }
+        if(ptr->next->id == value) { /* Case: Update value to be mru */
+            Node *newMRU = ptr->next;
+            ptr->next = newMRU->next;
+            newMRU->next = cache->mru;
+            cache->mru = newMRU;
             pthread_mutex_unlock(cache->locker);
             return 0;
         }
-        curr = curr->next;
+        ptr = ptr->next;
     }
     pthread_mutex_unlock(cache->locker);
-    return -1; /* Case: Value not found in cache */
+    return -1;
 }
 
 int MTL_delete(MTCache *cache, int value) {
-    if(cache->mru == NULL) return -1; /* Case: Empty cache */
-
     pthread_mutex_lock(cache->locker);
     if(cache->mru->id == value) { /* Case: Delete the mru node */
-        Node *rem = cache->mru->next;
-        free(cache->mru);
-        cache->mru = rem;
-        cache->mru->prev = NULL;
+        Node *ptr = cache->mru;
+        while(ptr->next != NULL) {
+            if(ptr->next->id == -1) break;
+            ptr = ptr->next;
+        }
+        Node *del = cache->mru;
+        cache->mru = cache->mru->next;
+        del->id = -1;
+        del->next = ptr->next;
+        ptr->next = del;
         cache->used--;
         pthread_mutex_unlock(cache->locker);
         return 0;
     }
 
-    Node *curr = cache->mru;
-    while(curr->next != NULL) {
-        if(curr->next->id == value) { /* Case: Delete "middle" or end node */
-            Node *rem = curr->next->next;
-            free(curr->next);
-            curr->next = rem;
-            cache->used--;
-            pthread_mutex_unlock(cache->locker);
-            return 0;
+    Node *parent = NULL;
+    Node *ptr = cache->mru;
+    while(ptr->next != NULL) {
+        if(ptr->next->id == -1) break;
+        if(ptr->next->id == value) {
+            parent = ptr;
         }
+        ptr = ptr->next;
+    }
+    if(parent != NULL) { /* Case: Delete "middle" or end node */
+        Node *del = parent->next;
+        parent->next = del->next;
+        del->next = ptr->next;
+        ptr->next = del;
+        del->id = -1;
+        cache->used--;
+        pthread_mutex_unlock(cache->locker);
+        return 0;
     }
     pthread_mutex_unlock(cache->locker);
     return -1; /* Case: Value not found in cache */
 }
 
 int MTL_size(MTCache *cache) {
-    return cache->used;
-    /* if(cache->mru == NULL) return 0;
     pthread_mutex_lock(cache->locker);
-    int used = 1;
-    Node *curr = cache->mru;
-    while(curr->next != NULL) {
-        used++;
-        curr = curr->next;
-    }
+    int used = cache->used;
     pthread_mutex_unlock(cache->locker);
-    return used; */
+    return used;
 }
 
 void MTH_print(MTCache *cache) {
