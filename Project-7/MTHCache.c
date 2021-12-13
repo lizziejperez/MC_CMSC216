@@ -1,3 +1,9 @@
+/*
+** Name: Elizabeth Perez
+** Student ID: eperez57
+** M-number: M20966722
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -17,7 +23,7 @@ typedef struct _mt_cache {
 
 MTCache *MTL_init(int size) {
     MTCache *cache = malloc(sizeof(MTCache));
-    if(cache == NULL) return NULL;
+    if(cache == NULL) return NULL; /* Malloc Error */
     cache->size = size;
     cache->used = 0;
     pthread_mutex_init(cache->locker, NULL);
@@ -26,6 +32,10 @@ MTCache *MTL_init(int size) {
     while(cache->size < size) {
         if(cache->mru == NULL) { /* Case: First node in cache */
             cache->mru = malloc(sizeof(Node));
+            if(cache->mru == NULL) { /* Malloc Error */
+                free(cache);
+                return NULL;
+            }
             cache->mru->id = -1;
             cache->mru->next = NULL;
         } else {
@@ -33,6 +43,16 @@ MTCache *MTL_init(int size) {
             while(ptr->next != NULL)
                 ptr = ptr->next;
             ptr->next = malloc(sizeof(Node));
+            if(ptr->next == NULL) { /* Malloc Error */
+                ptr = cache->mru;
+                while(ptr != NULL) {
+                    Node *del = ptr;
+                    ptr = ptr->next;
+                    free(del);
+                }
+                free(cache);
+                return NULL;
+            }
             ptr->next->id = -1;
             ptr->next->next = NULL;
         }
