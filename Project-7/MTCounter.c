@@ -1,3 +1,9 @@
+/*
+** Name: Elizabeth Perez
+** Student ID: eperez57
+** M-number: M20966722
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -10,6 +16,7 @@ typedef struct _mt_counter {
 
 MTCounter *MTC_init() {
     MTCounter *counter = malloc(sizeof(MTCounter));
+    if(counter == NULL) return NULL; /* Malloc Error */
     counter->count = 0;
     pthread_mutex_init(counter->locker, NULL);
     return counter;
