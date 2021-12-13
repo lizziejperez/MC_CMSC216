@@ -1,3 +1,9 @@
+/*
+** Name: Elizabeth Perez
+** Student ID: eperez57
+** M-number: M20966722
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -21,12 +27,17 @@ typedef struct _mt_hashtable {
 
 MTHash *MTH_init(int tsize) {
     MTHash *hashTable = malloc(sizeof(MTHash));
+    if(hashTable == NULL) return NULL; /* Malloc Error */
     hashTable->head = NULL;
     hashTable->tsize = 0;
 
     while(hashTable->tsize < tsize) {
         if(hashTable->head == NULL) {
             hashTable->head = malloc(sizeof(HashNode));
+            if(hashTable->head = NULL) {  /* Malloc Error */
+                free(hashTable);
+                return NULL;
+            }
             hashTable->head->dataBucket = NULL;
             pthread_mutex_init(hashTable->head->locker, NULL);
             hashTable->head->next = NULL;
@@ -35,6 +46,16 @@ MTHash *MTH_init(int tsize) {
             while(ptr->next != NULL)
                 ptr = ptr->next;
             ptr->next = malloc(sizeof(HashNode));
+            if(ptr->next == NULL) {  /* Malloc Error */
+                ptr = hashTable->head;
+                while(ptr != NULL) {
+                    HashNode *del = ptr;
+                    ptr = ptr->next;
+                    free(del);
+                }
+                free(hashTable);
+                return NULL;
+            }
             ptr->next->dataBucket = NULL;
             pthread_mutex_init(ptr->next->locker, NULL);
             ptr->next->next = NULL;
@@ -55,6 +76,7 @@ int MTH_add(MTHash *hashTable, int value) {
     pthread_mutex_lock(ptr->locker);
     if(ptr->dataBucket == NULL) {
         ptr->dataBucket = malloc(sizeof(Data));
+        if(ptr->dataBucket == NULL) return -8; /* Malloc Error */
         ptr->dataBucket->data = value;
         ptr->dataBucket->next = NULL;
         pthread_mutex_unlock(ptr->locker);
@@ -75,6 +97,7 @@ int MTH_add(MTHash *hashTable, int value) {
         }
     }
     ptr2->next = malloc(sizeof(Data));
+    if(ptr2->next == NULL) return -8; /* Malloc Error */
     ptr2->next->data = value;
     ptr2->next->next = NULL;   
     pthread_mutex_unlock(ptr->locker);
