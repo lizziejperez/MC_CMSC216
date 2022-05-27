@@ -1,7 +1,7 @@
 # Project: Simulated CPU
 ## Overview
 Implement an assembly language interpreter for a simple simulated CPU.
-## Objectives
+### Objectives
 - Create a "simple" program in C
 - Begin to build familiarity with Assembly opcodes
 - Consider the distinction between registers and memory
